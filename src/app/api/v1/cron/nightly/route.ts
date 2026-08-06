@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { env } from "@/lib/env";
 import { notifyComplaint, notifyUsers } from "@/lib/notify";
 import { addTimelineEntry, transitionComplaint } from "@/features/complaints/lib/transition";
+import { recomputeActionStats } from "@/features/public-site/lib/action-stats";
 
 /** The marker that stops one overdue complaint being flagged again every single night. */
 const SLA_BREACH_NOTE = "Past its resolution target";
@@ -93,5 +94,11 @@ export async function GET(request: Request) {
     }
   }
 
-  return NextResponse.json({ data: { closed, breached: breached.length } });
+  // The public Action Dashboard's automatic counters are recalculated last, so they
+  // include tonight's auto-closures.
+  const stats = await recomputeActionStats();
+
+  return NextResponse.json({
+    data: { closed, breached: breached.length, statsUpdated: stats.updated },
+  });
 }

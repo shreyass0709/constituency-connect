@@ -5,6 +5,9 @@ import { aiEnabled } from "../src/lib/ai/gemini";
 import { runIntake } from "../src/features/complaints/lib/ai-intake";
 import { aiMetaOf } from "../src/features/complaints/lib/ai-meta";
 import { UNCLASSIFIED_WHERE } from "../src/features/complaints/queries";
+import { distanceMeters } from "../src/features/complaints/lib/geo";
+import { listMapPins } from "../src/features/public-site/map";
+import { getStoryBySlug } from "../src/features/public-site/queries";
 import { nextComplaintCode } from "../src/features/complaints/lib/code";
 import { transitionComplaint } from "../src/features/complaints/lib/transition";
 import { canViewComplaint } from "../src/features/complaints/lib/access";
@@ -66,6 +69,9 @@ async function main() {
       status: "DRAFT",
       citizenId: citizen.id,
       wardId: citizen.wardId,
+      // Coordinates so the public-map assertions further down have something to place.
+      latitude: 12.9716,
+      longitude: 77.5946,
     },
     select: { id: true },
   });
@@ -208,9 +214,47 @@ async function main() {
       "closed complaints are terminal",
     );
 
+    // ── Gate M4: a closed complaint becomes a public story, with no PII attached ──
+    const story = await db.impactStory.create({
+      data: {
+        slug: `smoke-story-${Date.now()}`,
+        title: "Smoke test road repaired",
+        body: "Created by scripts/smoke.ts and deleted before it exits. ".repeat(3),
+        complaintId: draft.id,
+        wardId: citizen.wardId,
+        beforeImage: "https://example.test/before.jpg",
+        afterImage: "https://example.test/after.jpg",
+        publishedAt: new Date(),
+      },
+      select: { id: true, slug: true },
+    });
+
+    try {
+      const published = await getStoryBySlug(story.slug);
+      assert.ok(published, "a published story is readable without signing in");
+      assert.equal(
+        JSON.stringify(published).includes(citizen.name),
+        false,
+        "the story never carries the citizen's name",
+      );
+
+      const pins = await listMapPins();
+      const pin = pins.find((candidate) => candidate.id === draft.id);
+      assert.ok(pin, "the complaint appears on the public map");
+      assert.equal(pin.storySlug, story.slug, "and links to its published story");
+      assert.notEqual(pin.latitude, 12.9716, "with a jittered position, not the real one");
+      assert.ok(
+        distanceMeters({ latitude: 12.9716, longitude: 77.5946 }, pin) <= 55,
+        "jittered, but still on the right street",
+      );
+    } finally {
+      await db.impactStory.delete({ where: { id: story.id } });
+    }
+
     console.log(
       `OK — ${code} walked draft → closed through every role, 7 timeline entries,` +
-        " and survived the AI being switched off mid-flight.",
+        " survived the AI being switched off mid-flight, and reached the public map" +
+        " and stories page with no PII and a jittered pin.",
     );
   } finally {
     await db.complaint.delete({ where: { id: draft.id } });

@@ -1,5 +1,6 @@
 import {
   ClipboardList,
+  FileText,
   Inbox,
   LayoutDashboard,
   MessageSquarePlus,
@@ -23,6 +24,7 @@ export const NAV_BY_SECTION: Record<Section, NavItem[]> = {
     { href: "/office", label: "Dashboard", icon: LayoutDashboard },
     { href: "/office/triage", label: "Triage", icon: Inbox },
     { href: "/office/complaints", label: "Complaints", icon: ClipboardList },
+    { href: "/office/content", label: "Content", icon: FileText },
   ],
   "/department": [{ href: "/department", label: "Queue", icon: Inbox }],
   "/field": [{ href: "/field", label: "My tasks", icon: ClipboardList }],
