@@ -1,0 +1,212 @@
+import type { Prisma } from "@/generated/prisma/client";
+import type { ComplaintCategory, ComplaintStatus } from "@/generated/prisma/enums";
+import { db } from "@/lib/db";
+import type { CurrentUser } from "@/lib/auth/require-user";
+import { can } from "@/lib/auth/permissions";
+import { canViewComplaint, complaintScopeWhere } from "./lib/access";
+
+// Reads for Server Components. Every one of them narrows by `complaintScopeWhere`, so a
+// forgotten filter cannot leak another citizen's complaint.
+
+const CARD_SELECT = {
+  id: true,
+  code: true,
+  title: true,
+  status: true,
+  priority: true,
+  category: true,
+  createdAt: true,
+  dueAt: true,
+  completedAt: true,
+  ward: { select: { name: true } },
+  department: { select: { name: true } },
+  assignedTo: { select: { name: true } },
+  _count: { select: { media: true } },
+} satisfies Prisma.ComplaintSelect;
+
+export type ComplaintCard = Prisma.ComplaintGetPayload<{ select: typeof CARD_SELECT }>;
+
+export type ComplaintFilters = {
+  status?: ComplaintStatus | ComplaintStatus[];
+  category?: ComplaintCategory;
+  departmentId?: string;
+  wardId?: string;
+  assignedToId?: string;
+  q?: string;
+  page?: number;
+  limit?: number;
+};
+
+function whereFrom(user: CurrentUser, filters: ComplaintFilters): Prisma.ComplaintWhereInput {
+  const { status, category, departmentId, wardId, assignedToId, q } = filters;
+  return {
+    AND: [
+      complaintScopeWhere(user),
+      // Drafts are private scratch space — they surface only on the drafts screen.
+      status ? { status: Array.isArray(status) ? { in: status } : status } : { status: { not: "DRAFT" } },
+      category ? { category } : {},
+      departmentId ? { departmentId } : {},
+      wardId ? { wardId } : {},
+      assignedToId ? { assignedToId } : {},
+      q
+        ? {
+            OR: [
+              { code: { contains: q, mode: "insensitive" } },
+              { title: { contains: q, mode: "insensitive" } },
+              { description: { contains: q, mode: "insensitive" } },
+            ],
+          }
+        : {},
+    ],
+  };
+}
+
+export async function listComplaints(user: CurrentUser, filters: ComplaintFilters = {}) {
+  const limit = Math.min(filters.limit ?? 25, 50);
+  const page = Math.max(filters.page ?? 1, 1);
+  const where = whereFrom(user, filters);
+
+  const [items, total] = await Promise.all([
+    db.complaint.findMany({
+      where,
+      select: CARD_SELECT,
+      orderBy: [{ createdAt: "desc" }],
+      skip: (page - 1) * limit,
+      take: limit,
+    }),
+    db.complaint.count({ where }),
+  ]);
+
+  return { items, meta: { page, limit, total, totalPages: Math.max(Math.ceil(total / limit), 1) } };
+}
+
+export async function listMyDrafts(userId: string) {
+  return db.complaint.findMany({
+    where: { citizenId: userId, status: "DRAFT" },
+    select: { id: true, title: true, category: true, updatedAt: true },
+    orderBy: { updatedAt: "desc" },
+  });
+}
+
+export async function getDraft(id: string, userId: string) {
+  const draft = await db.complaint.findFirst({
+    where: { id, citizenId: userId, status: "DRAFT" },
+    select: {
+      id: true,
+      title: true,
+      description: true,
+      category: true,
+      latitude: true,
+      longitude: true,
+      address: true,
+      landmark: true,
+      isPrivate: true,
+      media: { select: { id: true, kind: true, url: true } },
+    },
+  });
+  return draft;
+}
+
+const DETAIL_SELECT = {
+  id: true,
+  code: true,
+  title: true,
+  description: true,
+  category: true,
+  status: true,
+  priority: true,
+  citizenId: true,
+  departmentId: true,
+  assignedToId: true,
+  latitude: true,
+  longitude: true,
+  address: true,
+  landmark: true,
+  isPrivate: true,
+  dueAt: true,
+  acknowledgedAt: true,
+  estimatedCompletion: true,
+  completedAt: true,
+  closedAt: true,
+  rejectionReason: true,
+  rating: true,
+  feedbackText: true,
+  createdAt: true,
+  citizen: { select: { id: true, name: true, phone: true } },
+  ward: { select: { id: true, name: true } },
+  village: { select: { name: true } },
+  department: { select: { id: true, name: true } },
+  assignedTo: { select: { id: true, name: true } },
+  duplicateOf: { select: { id: true, code: true, title: true } },
+  media: {
+    select: { id: true, kind: true, url: true, stage: true, createdAt: true },
+    orderBy: { createdAt: "asc" },
+  },
+  timeline: {
+    select: {
+      id: true,
+      type: true,
+      fromStatus: true,
+      toStatus: true,
+      note: true,
+      isPublic: true,
+      createdAt: true,
+      actor: { select: { id: true, name: true, role: true } },
+    },
+    orderBy: { createdAt: "asc" },
+  },
+} satisfies Prisma.ComplaintSelect;
+
+export type ComplaintDetail = Prisma.ComplaintGetPayload<{ select: typeof DETAIL_SELECT }>;
+
+/** Returns null when the complaint does not exist *or* is not this viewer's to see. */
+export async function getComplaintForViewer(id: string, user: CurrentUser) {
+  const complaint = await db.complaint.findUnique({ where: { id }, select: DETAIL_SELECT });
+  if (!complaint || !canViewComplaint(user, complaint)) return null;
+
+  // Internal notes are for people who work complaints, not for the citizen who raised one.
+  if (can(user.role, "complaint.view_all")) return complaint;
+  return { ...complaint, timeline: complaint.timeline.filter((entry) => entry.isPublic) };
+}
+
+/** Public track-by-code: status and public timeline only — no names, no phone, no address. */
+export async function getPublicComplaintByCode(code: string) {
+  const complaint = await db.complaint.findUnique({
+    where: { code: code.trim().toUpperCase() },
+    select: {
+      code: true,
+      title: true,
+      category: true,
+      status: true,
+      createdAt: true,
+      acknowledgedAt: true,
+      estimatedCompletion: true,
+      completedAt: true,
+      closedAt: true,
+      department: { select: { name: true } },
+      ward: { select: { name: true } },
+      timeline: {
+        where: { isPublic: true },
+        select: { id: true, type: true, toStatus: true, note: true, createdAt: true },
+        orderBy: { createdAt: "asc" },
+      },
+    },
+  });
+  if (!complaint || complaint.status === "DRAFT") return null;
+  return complaint;
+}
+
+/** Counters for the citizen dashboard and the office header tabs. */
+export async function complaintCounts(user: CurrentUser) {
+  const scope = complaintScopeWhere(user);
+  const grouped = await db.complaint.groupBy({
+    by: ["status"],
+    where: scope,
+    _count: { _all: true },
+  });
+  const counts = Object.fromEntries(grouped.map((row) => [row.status, row._count._all])) as Partial<
+    Record<ComplaintStatus, number>
+  >;
+  const total = grouped.reduce((sum, row) => sum + row._count._all, 0);
+  return { counts, total: total - (counts.DRAFT ?? 0) };
+}
