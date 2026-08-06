@@ -51,14 +51,12 @@ export function NotificationBell({ initialUnread }: { initialUnread: number }) {
   }, []);
 
   useEffect(() => {
-    load();
     const timer = setInterval(load, POLL_MS);
     // Coming back to the tab should feel instant, not "up to 30 s stale".
-    const onFocus = () => load();
-    window.addEventListener("focus", onFocus);
+    window.addEventListener("focus", load);
     return () => {
       clearInterval(timer);
-      window.removeEventListener("focus", onFocus);
+      window.removeEventListener("focus", load);
     };
   }, [load]);
 
@@ -73,7 +71,9 @@ export function NotificationBell({ initialUnread }: { initialUnread: number }) {
   }
 
   return (
-    <DropdownMenu>
+    // The list itself is fetched when the bell is opened — no point pulling twenty rows
+    // every 30 s for a badge.
+    <DropdownMenu onOpenChange={(open) => open && load()}>
       <DropdownMenuTrigger asChild>
         <Button
           variant="ghost"
