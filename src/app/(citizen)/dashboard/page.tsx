@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { MessageSquarePlus } from "lucide-react";
+import { getTranslations } from "next-intl/server";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Button } from "@/components/ui/button";
 import { OPEN_STATUSES } from "@/constants/status";
@@ -11,6 +12,8 @@ export const metadata = { title: "Dashboard" };
 
 export default async function CitizenDashboard() {
   const user = await requireUser();
+  const t = await getTranslations("citizenDashboard");
+  const nav = await getTranslations("publicNav");
 
   const [{ items: open }, { items: recent }] = await Promise.all([
     listComplaints(user, { citizenId: user.id, status: [...OPEN_STATUSES], limit: 5 }),
@@ -23,24 +26,22 @@ export default async function CitizenDashboard() {
       <div className="flex flex-wrap items-center gap-3">
         <div className="flex-1">
           <h1 className="font-heading text-2xl font-semibold tracking-tight">
-            Namaste, {user.name.split(" ")[0]}
+            {t("greeting", { name: user.name.split(" ")[0] })}
           </h1>
-          <p className="text-muted-foreground">Your concerns and their progress live here.</p>
+          <p className="text-muted-foreground">{t("subtitle")}</p>
         </div>
         <Button asChild>
           <Link href="/dashboard/raise">
             <MessageSquarePlus />
-            Raise a concern
+            {nav("raiseConcern")}
           </Link>
         </Button>
       </div>
 
       {awaiting.length > 0 ? (
         <section className="flex flex-col gap-2 rounded-2xl border border-primary/30 bg-primary/5 p-4">
-          <h2 className="font-medium">Waiting on you</h2>
-          <p className="text-sm text-muted-foreground">
-            Work is marked done on these. Confirm it, or reopen if it is not right.
-          </p>
+          <h2 className="font-medium">{t("waitingOnYou")}</h2>
+          <p className="text-sm text-muted-foreground">{t("waitingHint")}</p>
           <ComplaintList complaints={awaiting} basePath="/dashboard/complaints" />
         </section>
       ) : null}
@@ -49,13 +50,13 @@ export default async function CitizenDashboard() {
         <section className="flex flex-col gap-3">
           <div className="flex items-center gap-2">
             <h2 className="font-heading text-lg font-semibold">
-              {open.length > 0 ? "In progress" : "Recent"}
+              {open.length > 0 ? t("inProgress") : t("recent")}
             </h2>
             <Link
               href="/dashboard/complaints"
               className="ml-auto text-sm text-primary underline-offset-4 hover:underline"
             >
-              See all
+              {t("seeAll")}
             </Link>
           </div>
           <ComplaintList
@@ -66,11 +67,11 @@ export default async function CitizenDashboard() {
       ) : (
         <EmptyState
           icon={MessageSquarePlus}
-          title="No concerns raised yet"
-          description="Tell us what needs fixing in your area — a photo and two lines is enough."
+          title={t("emptyTitle")}
+          description={t("emptyDescription")}
           action={
             <Button asChild>
-              <Link href="/dashboard/raise">Raise a concern</Link>
+              <Link href="/dashboard/raise">{nav("raiseConcern")}</Link>
             </Button>
           }
         />

@@ -5,7 +5,8 @@ import { StatusChip } from "@/components/shared/status-chip";
 import { Timeline } from "@/components/shared/timeline";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { CATEGORY_LABEL, STATUS_HINT } from "@/constants/status";
+
+import { getTranslations } from "next-intl/server";
 import { rateLimit } from "@/lib/ratelimit";
 import { formatDate } from "@/lib/utils";
 import { getPublicComplaintByCode } from "@/features/complaints/queries";
@@ -23,6 +24,10 @@ export const metadata = {
 export default async function TrackPage({ searchParams }: PageProps<"/track">) {
   const { code } = await searchParams;
   const query = typeof code === "string" ? code.trim() : "";
+  const t = await getTranslations("track");
+  const hint = await getTranslations("statusHint");
+  const category = await getTranslations("category");
+  const detail = await getTranslations("complaintDetail");
 
   let throttled = false;
   if (query) {
@@ -35,10 +40,8 @@ export default async function TrackPage({ searchParams }: PageProps<"/track">) {
   return (
     <section className="mx-auto flex w-full max-w-2xl flex-col gap-8 px-4 py-16">
       <div className="flex flex-col gap-2 text-center">
-        <h1 className="font-heading text-3xl font-semibold tracking-tight">Track a concern</h1>
-        <p className="text-muted-foreground">
-          Enter the code from your confirmation, for example CC-2026-01042.
-        </p>
+        <h1 className="font-heading text-3xl font-semibold tracking-tight">{t("title")}</h1>
+        <p className="text-muted-foreground">{t("subtitle")}</p>
       </div>
 
       <form method="get" className="flex gap-2">
@@ -46,28 +49,30 @@ export default async function TrackPage({ searchParams }: PageProps<"/track">) {
           name="code"
           defaultValue={query}
           placeholder="CC-2026-01042"
-          aria-label="Complaint code"
+          aria-label={t("codeLabel")}
           className="font-mono"
         />
         <Button type="submit">
           <Search />
-          Track
+          {t("track")}
         </Button>
       </form>
 
       {throttled ? (
         <p className="rounded-2xl border border-dashed p-6 text-center text-muted-foreground">
-          Too many lookups from this connection. Please wait a minute and try again.
+          {t("throttled")}
         </p>
       ) : null}
 
       {query && !throttled && !complaint ? (
         <p className="rounded-2xl border border-dashed p-6 text-center text-muted-foreground">
-          No concern found with that code. Check for a typo, or{" "}
-          <Link href="/login" className="text-primary hover:underline">
-            sign in
-          </Link>{" "}
-          to see everything you have raised.
+          {t.rich("notFound", {
+            signin: (chunks) => (
+              <Link href="/login" className="text-primary hover:underline">
+                {chunks}
+              </Link>
+            ),
+          })}
         </p>
       ) : null}
 
@@ -79,30 +84,38 @@ export default async function TrackPage({ searchParams }: PageProps<"/track">) {
               <StatusChip status={complaint.status} />
             </div>
             <h2 className="font-heading text-xl font-semibold">{complaint.title}</h2>
-            <p className="text-sm text-muted-foreground">{STATUS_HINT[complaint.status]}</p>
+            <p className="text-sm text-muted-foreground">{hint(complaint.status)}</p>
           </header>
 
           <dl className="grid gap-3 text-sm sm:grid-cols-2">
             <div>
-              <dt className="text-xs uppercase tracking-wide text-muted-foreground">Category</dt>
-              <dd className="font-medium">{CATEGORY_LABEL[complaint.category]}</dd>
+              <dt className="text-xs uppercase tracking-wide text-muted-foreground">
+                {detail("field.category")}
+              </dt>
+              <dd className="font-medium">{category(complaint.category)}</dd>
             </div>
             <div>
-              <dt className="text-xs uppercase tracking-wide text-muted-foreground">Ward</dt>
+              <dt className="text-xs uppercase tracking-wide text-muted-foreground">
+                {detail("field.ward")}
+              </dt>
               <dd className="font-medium">{complaint.ward?.name ?? "—"}</dd>
             </div>
             <div>
-              <dt className="text-xs uppercase tracking-wide text-muted-foreground">Department</dt>
-              <dd className="font-medium">{complaint.department?.name ?? "Not routed yet"}</dd>
+              <dt className="text-xs uppercase tracking-wide text-muted-foreground">
+                {detail("field.department")}
+              </dt>
+              <dd className="font-medium">{complaint.department?.name ?? detail("notRouted")}</dd>
             </div>
             <div>
-              <dt className="text-xs uppercase tracking-wide text-muted-foreground">Raised</dt>
+              <dt className="text-xs uppercase tracking-wide text-muted-foreground">
+                {detail("field.raised")}
+              </dt>
               <dd className="font-medium">{formatDate(complaint.createdAt)}</dd>
             </div>
           </dl>
 
           <div className="flex flex-col gap-3">
-            <h3 className="text-sm font-medium text-muted-foreground">History</h3>
+            <h3 className="text-sm font-medium text-muted-foreground">{detail("history")}</h3>
             <Timeline entries={complaint.timeline} />
           </div>
         </article>

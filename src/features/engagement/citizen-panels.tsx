@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { CalendarPlus, Check, HandHeart, LoaderCircle, PhoneCall, Plus, ThumbsUp } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import type { SuggestionStatus } from "@/generated/prisma/enums";
 import { Button } from "@/components/ui/button";
@@ -57,15 +58,17 @@ export function AppointmentPanel({
   const [purpose, setPurpose] = useState("");
   const [date, setDate] = useState("");
   const [slot, setSlot] = useState("");
+  const t = useTranslations("engage.appointments");
+  const common = useTranslations("common");
   const run = useRunner();
 
   return (
     <section className="flex flex-col gap-4 rounded-2xl border p-5">
-      <h2 className="font-heading text-lg font-semibold">Meet the office</h2>
+      <h2 className="font-heading text-lg font-semibold">{t("heading")}</h2>
 
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="grid gap-2 sm:col-span-2">
-          <Label htmlFor="purpose">What is it about?</Label>
+          <Label htmlFor="purpose">{t("purpose")}</Label>
           <Textarea
             id="purpose"
             rows={2}
@@ -75,7 +78,7 @@ export function AppointmentPanel({
           />
         </div>
         <div className="grid gap-2">
-          <Label htmlFor="date">Preferred date</Label>
+          <Label htmlFor="date">{t("date")}</Label>
           <Input
             id="date"
             type="date"
@@ -84,11 +87,11 @@ export function AppointmentPanel({
           />
         </div>
         <div className="grid gap-2">
-          <Label htmlFor="slot">Preferred time (optional)</Label>
+          <Label htmlFor="slot">{t("slot")}</Label>
           <Input
             id="slot"
             value={slot}
-            placeholder="Morning"
+            placeholder={t("slotPlaceholder")}
             onChange={(event) => setSlot(event.target.value)}
           />
         </div>
@@ -100,7 +103,7 @@ export function AppointmentPanel({
         onClick={async () => {
           const ok = await run.call(
             () => bookAppointment({ purpose, requestedDate: date, slot: slot || null }),
-            "Requested. The office will confirm a time.",
+            t("requested"),
           );
           if (ok) {
             setPurpose("");
@@ -110,7 +113,7 @@ export function AppointmentPanel({
         }}
       >
         {run.busy ? <LoaderCircle className="animate-spin" /> : <CalendarPlus />}
-        Request an appointment
+        {t("request")}
       </Button>
 
       {appointments.length > 0 ? (
@@ -126,7 +129,7 @@ export function AppointmentPanel({
                 <span className="block text-xs text-muted-foreground">{appointment.purpose}</span>
                 {appointment.staffNote ? (
                   <span className="block text-xs text-muted-foreground">
-                    Office: {appointment.staffNote}
+                    {t("officeNote", { note: appointment.staffNote })}
                   </span>
                 ) : null}
               </span>
@@ -137,10 +140,10 @@ export function AppointmentPanel({
                   variant="ghost"
                   disabled={run.busy}
                   onClick={() =>
-                    run.call(() => cancelAppointment({ id: appointment.id }), "Cancelled.")
+                    run.call(() => cancelAppointment({ id: appointment.id }), t("cancelled"))
                   }
                 >
-                  Cancel
+                  {common("cancel")}
                 </Button>
               ) : null}
             </li>
@@ -161,27 +164,28 @@ export function CallbackPanel({
   const [phone, setPhone] = useState(defaultPhone);
   const [topic, setTopic] = useState("");
   const [preferredTime, setPreferredTime] = useState("");
+  const t = useTranslations("engage.callbacks");
   const run = useRunner();
 
   return (
     <section className="flex flex-col gap-4 rounded-2xl border p-5">
-      <h2 className="font-heading text-lg font-semibold">Ask for a callback</h2>
+      <h2 className="font-heading text-lg font-semibold">{t("heading")}</h2>
 
       <div className="grid gap-3 sm:grid-cols-3">
         <div className="grid gap-2">
-          <Label htmlFor="cb-phone">Phone</Label>
+          <Label htmlFor="cb-phone">{t("phone")}</Label>
           <Input id="cb-phone" value={phone} onChange={(event) => setPhone(event.target.value)} />
         </div>
         <div className="grid gap-2">
-          <Label htmlFor="cb-topic">Topic</Label>
+          <Label htmlFor="cb-topic">{t("topic")}</Label>
           <Input id="cb-topic" value={topic} onChange={(event) => setTopic(event.target.value)} />
         </div>
         <div className="grid gap-2">
-          <Label htmlFor="cb-time">Best time (optional)</Label>
+          <Label htmlFor="cb-time">{t("bestTime")}</Label>
           <Input
             id="cb-time"
             value={preferredTime}
-            placeholder="After 6pm"
+            placeholder={t("bestTimePlaceholder")}
             onChange={(event) => setPreferredTime(event.target.value)}
           />
         </div>
@@ -193,7 +197,7 @@ export function CallbackPanel({
         onClick={async () => {
           const ok = await run.call(
             () => requestCallback({ phone, topic, preferredTime: preferredTime || null }),
-            "The office will call you back.",
+            t("requested"),
           );
           if (ok) {
             setTopic("");
@@ -202,7 +206,7 @@ export function CallbackPanel({
         }}
       >
         {run.busy ? <LoaderCircle className="animate-spin" /> : <PhoneCall />}
-        Request a callback
+        {t("request")}
       </Button>
 
       {callbacks.length > 0 ? (
@@ -235,12 +239,13 @@ export function PollPanel({
     options: { id: string; label: string; count: number }[];
   }[];
 }) {
+  const t = useTranslations("engage.polls");
   const run = useRunner();
   if (polls.length === 0) return null;
 
   return (
     <section className="flex flex-col gap-4 rounded-2xl border p-5">
-      <h2 className="font-heading text-lg font-semibold">Polls</h2>
+      <h2 className="font-heading text-lg font-semibold">{t("heading")}</h2>
 
       {polls.map((poll) => {
         // Results appear once you have voted, or once the poll has closed — otherwise
@@ -270,7 +275,7 @@ export function PollPanel({
                           {share}%
                         </span>
                         {poll.myVote === option.id ? (
-                          <Check className="size-4 text-primary" aria-label="Your vote" />
+                          <Check className="size-4 text-primary" aria-label={t("yourVote")} />
                         ) : null}
                       </div>
                     ) : (
@@ -282,7 +287,7 @@ export function PollPanel({
                         onClick={() =>
                           run.call(
                             () => votePoll({ pollId: poll.id, optionId: option.id }),
-                            "Vote recorded.",
+                            t("recorded"),
                           )
                         }
                       >
@@ -294,8 +299,8 @@ export function PollPanel({
               })}
             </ul>
             <p className="text-xs text-muted-foreground">
-              {poll.total} {poll.total === 1 ? "vote" : "votes"} ·{" "}
-              {poll.open ? `closes ${formatDate(poll.endsAt)}` : "closed"}
+              {t("votes", { count: poll.total })} ·{" "}
+              {poll.open ? t("closes", { date: formatDate(poll.endsAt) }) : t("closed")}
             </p>
           </div>
         );
@@ -320,26 +325,27 @@ export function SuggestionPanel({
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [open, setOpen] = useState(false);
+  const t = useTranslations("engage.suggestions");
   const run = useRunner();
 
   return (
     <section className="flex flex-col gap-4 rounded-2xl border p-5">
       <div className="flex items-center gap-3">
-        <h2 className="font-heading text-lg font-semibold">Ideas for the constituency</h2>
+        <h2 className="font-heading text-lg font-semibold">{t("heading")}</h2>
         <Button size="sm" variant="ghost" className="ml-auto" onClick={() => setOpen(!open)}>
           <Plus />
-          Suggest something
+          {t("suggest")}
         </Button>
       </div>
 
       {open ? (
         <div className="flex flex-col gap-3 rounded-xl border border-dashed p-4">
           <div className="grid gap-2">
-            <Label htmlFor="sg-title">Title</Label>
+            <Label htmlFor="sg-title">{t("title")}</Label>
             <Input id="sg-title" value={title} onChange={(event) => setTitle(event.target.value)} />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="sg-body">The idea</Label>
+            <Label htmlFor="sg-body">{t("idea")}</Label>
             <Textarea
               id="sg-body"
               rows={3}
@@ -353,7 +359,7 @@ export function SuggestionPanel({
             onClick={async () => {
               const ok = await run.call(
                 () => createSuggestion({ title, body }),
-                "Shared with the constituency.",
+                t("shared"),
               );
               if (ok) {
                 setTitle("");
@@ -362,7 +368,7 @@ export function SuggestionPanel({
               }
             }}
           >
-            Post the idea
+            {t("post")}
           </Button>
         </div>
       ) : null}
@@ -380,7 +386,7 @@ export function SuggestionPanel({
                 onClick={() =>
                   run.call(
                     () => voteSuggestion({ suggestionId: suggestion.id }),
-                    suggestion.voted ? "Vote removed." : "Upvoted.",
+                    suggestion.voted ? t("voteRemoved") : t("upvoted"),
                   )
                 }
               >
@@ -399,7 +405,7 @@ export function SuggestionPanel({
         </ul>
       ) : (
         <p className="text-sm text-muted-foreground">
-          No ideas yet. Yours could be the first.
+          {t("empty")}
         </p>
       )}
     </section>
@@ -413,31 +419,32 @@ export function VolunteerPanel({
 }) {
   const [skills, setSkills] = useState(volunteer?.skills.join(", ") ?? "");
   const [availability, setAvailability] = useState(volunteer?.availability ?? "");
+  const t = useTranslations("engage.volunteer");
   const run = useRunner();
 
   return (
     <section className="flex flex-col gap-4 rounded-2xl border p-5">
       <div className="flex items-center gap-3">
-        <h2 className="font-heading text-lg font-semibold">Volunteer</h2>
+        <h2 className="font-heading text-lg font-semibold">{t("heading")}</h2>
         {volunteer ? <StatusPill value={volunteer.status} /> : null}
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="grid gap-2">
-          <Label htmlFor="vol-skills">What can you help with?</Label>
+          <Label htmlFor="vol-skills">{t("skills")}</Label>
           <Input
             id="vol-skills"
             value={skills}
-            placeholder="Teaching, first aid, tree planting"
+            placeholder={t("skillsPlaceholder")}
             onChange={(event) => setSkills(event.target.value)}
           />
         </div>
         <div className="grid gap-2">
-          <Label htmlFor="vol-availability">When are you free?</Label>
+          <Label htmlFor="vol-availability">{t("availability")}</Label>
           <Input
             id="vol-availability"
             value={availability}
-            placeholder="Weekends"
+            placeholder={t("availabilityPlaceholder")}
             onChange={(event) => setAvailability(event.target.value)}
           />
         </div>
@@ -456,12 +463,12 @@ export function VolunteerPanel({
                   .filter(Boolean),
                 availability: availability || null,
               }),
-            volunteer ? "Details updated." : "Thank you — the office will be in touch.",
+            volunteer ? t("updated") : t("registered"),
           )
         }
       >
         {run.busy ? <LoaderCircle className="animate-spin" /> : <HandHeart />}
-        {volunteer ? "Update my details" : "Register as a volunteer"}
+        {volunteer ? t("update") : t("register")}
       </Button>
     </section>
   );

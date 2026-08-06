@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,6 +24,9 @@ export function OnboardingForm({
   defaultName: string;
   wards: { id: string; number: number; name: string }[];
 }) {
+  const t = useTranslations("onboarding");
+  const language_ = useTranslations("language");
+  const common = useTranslations("common");
   const router = useRouter();
   const [name, setName] = useState(defaultName);
   const [wardId, setWardId] = useState("");
@@ -41,7 +45,7 @@ export function OnboardingForm({
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-4">
       <div className="grid gap-2">
-        <Label htmlFor="name">Your name</Label>
+        <Label htmlFor="name">{t("yourName")}</Label>
         <Input
           id="name"
           value={name}
@@ -52,10 +56,10 @@ export function OnboardingForm({
       </div>
 
       <div className="grid gap-2">
-        <Label htmlFor="ward">Your ward</Label>
+        <Label htmlFor="ward">{t("yourWard")}</Label>
         <Select value={wardId} onValueChange={setWardId} required>
           <SelectTrigger id="ward" className="w-full">
-            <SelectValue placeholder="Select your ward" />
+            <SelectValue placeholder={t("selectWard")} />
           </SelectTrigger>
           <SelectContent>
             {wards.map((ward) => (
@@ -68,7 +72,7 @@ export function OnboardingForm({
       </div>
 
       <div className="grid gap-2">
-        <Label htmlFor="language">Preferred language</Label>
+        <Label htmlFor="language">{language_("label")}</Label>
         <Select value={language} onValueChange={setLanguage}>
           <SelectTrigger id="language" className="w-full">
             <SelectValue />
@@ -84,7 +88,7 @@ export function OnboardingForm({
       </div>
 
       <Button type="submit" disabled={busy}>
-        {busy ? "Saving…" : "Continue"}
+        {busy ? common("saving") : t("continue")}
       </Button>
     </form>
   );

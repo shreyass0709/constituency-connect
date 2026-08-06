@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,6 +22,7 @@ export function toE164(input: string): string | null {
 }
 
 export function PhoneOtpForm({ next }: { next?: string }) {
+  const t = useTranslations("auth");
   const router = useRouter();
   const [phone, setPhone] = useState("");
   const [sentTo, setSentTo] = useState<string | null>(null);
@@ -30,14 +32,14 @@ export function PhoneOtpForm({ next }: { next?: string }) {
   async function sendOtp(event: React.FormEvent) {
     event.preventDefault();
     const phoneNumber = toE164(phone);
-    if (!phoneNumber) return toast.error("Enter a valid 10-digit mobile number.");
+    if (!phoneNumber) return toast.error(t("errors.phone"));
 
     setBusy(true);
     const { error } = await authClient.phoneNumber.sendOtp({ phoneNumber });
     setBusy(false);
-    if (error) return toast.error(error.message ?? "Could not send the code. Try again.");
+    if (error) return toast.error(error.message ?? t("errors.sendFailed"));
     setSentTo(phoneNumber);
-    toast.success(`Code sent to ${phoneNumber}`);
+    toast.success(t("codeSent", { phone: phoneNumber }));
   }
 
   async function verify(otp: string) {
@@ -47,7 +49,7 @@ export function PhoneOtpForm({ next }: { next?: string }) {
     setBusy(false);
     if (error) {
       setCode("");
-      return toast.error(error.message ?? "That code didn't work. Try again.");
+      return toast.error(error.message ?? t("errors.badCode"));
     }
     router.push(next ?? "/after-login");
   }
@@ -56,7 +58,7 @@ export function PhoneOtpForm({ next }: { next?: string }) {
     return (
       <form onSubmit={sendOtp} className="flex flex-col gap-4">
         <div className="grid gap-2">
-          <Label htmlFor="phone">Mobile number</Label>
+          <Label htmlFor="phone">{t("mobileNumber")}</Label>
           <Input
             id="phone"
             name="phone"
@@ -70,7 +72,7 @@ export function PhoneOtpForm({ next }: { next?: string }) {
           />
         </div>
         <Button type="submit" disabled={busy}>
-          {busy ? "Sending…" : "Send code"}
+          {busy ? t("sending") : t("sendCode")}
         </Button>
       </form>
     );
@@ -78,7 +80,7 @@ export function PhoneOtpForm({ next }: { next?: string }) {
 
   return (
     <div className="flex flex-col items-center gap-4">
-      <Label htmlFor="otp">Enter the code sent to {sentTo}</Label>
+      <Label htmlFor="otp">{t("enterCode", { phone: sentTo })}</Label>
       <InputOTP
         id="otp"
         maxLength={6}
@@ -104,7 +106,7 @@ export function PhoneOtpForm({ next }: { next?: string }) {
           setCode("");
         }}
       >
-        Use a different number
+        {t("differentNumber")}
       </Button>
     </div>
   );

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -32,6 +33,7 @@ const POLL_MS = 30_000;
  * docs/06-roadmap.md and the day someone complains about the delay, it is one file.
  */
 export function NotificationBell({ initialUnread }: { initialUnread: number }) {
+  const t = useTranslations("notifications");
   const router = useRouter();
   const [items, setItems] = useState<Notification[]>([]);
   // Seeded by the server so the badge is right on first paint — the poll only keeps it
@@ -79,7 +81,7 @@ export function NotificationBell({ initialUnread }: { initialUnread: number }) {
           variant="ghost"
           size="icon"
           className="relative"
-          aria-label={unread > 0 ? `Notifications, ${unread} unread` : "Notifications"}
+          aria-label={unread > 0 ? t("bellUnread", { count: unread }) : t("bell")}
         >
           <Bell className="size-4" />
           {unread > 0 ? (
@@ -91,20 +93,20 @@ export function NotificationBell({ initialUnread }: { initialUnread: number }) {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-80">
         <DropdownMenuLabel className="flex items-center justify-between">
-          Notifications
+          {t("bell")}
           {unread > 0 ? (
             <button
               type="button"
               onClick={() => markRead()}
               className="text-xs font-normal text-primary hover:underline"
             >
-              Mark all read
+              {t("markAllRead")}
             </button>
           ) : null}
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         {items.length === 0 ? (
-          <p className="px-2 py-6 text-center text-sm text-muted-foreground">Nothing yet.</p>
+          <p className="px-2 py-6 text-center text-sm text-muted-foreground">{t("empty")}</p>
         ) : (
           items.map((item) => (
             <DropdownMenuItem key={item.id} asChild className="flex-col items-start gap-0.5">

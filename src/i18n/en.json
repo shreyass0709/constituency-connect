@@ -130,7 +130,8 @@
       "description": "Tell us a little more.",
       "noGeolocation": "This device cannot share a location.",
       "locationFailed": "Could not get your location. Type the address instead."
-    }
+    },
+    "pageHint": "Three short steps. Your progress is saved as you go."
   },
   "timeline": {
     "empty": "Nothing has happened yet.",
@@ -220,5 +221,121 @@
   "settings": {
     "title": "Settings",
     "subtitle": "How we reach you when something changes."
+  },
+  "auth": {
+    "signIn": "Sign in",
+    "signInHint": "We'll text a 6-digit code to your phone. No password needed.",
+    "deactivated": "This account has been deactivated. Contact the representative's office.",
+    "mobileNumber": "Mobile number",
+    "sending": "Sending…",
+    "sendCode": "Send code",
+    "codeSent": "Code sent to {phone}",
+    "enterCode": "Enter the code sent to {phone}",
+    "differentNumber": "Use a different number",
+    "errors": {
+      "phone": "Enter a valid 10-digit mobile number.",
+      "sendFailed": "Could not send the code. Try again.",
+      "badCode": "That code didn't work. Try again."
+    }
+  },
+  "onboarding": {
+    "yourName": "Your name",
+    "yourWard": "Your ward",
+    "selectWard": "Select your ward",
+    "continue": "Continue"
+  },
+  "citizenDashboard": {
+    "greeting": "Namaste, {name}",
+    "subtitle": "Your concerns and their progress live here.",
+    "waitingOnYou": "Waiting on you",
+    "waitingHint": "Work is marked done on these. Confirm it, or reopen if it is not right.",
+    "inProgress": "In progress",
+    "recent": "Recent",
+    "seeAll": "See all",
+    "emptyTitle": "No concerns raised yet",
+    "emptyDescription": "Tell us what needs fixing in your area — a photo and two lines is enough."
+  },
+  "myComplaints": {
+    "title": "My concerns",
+    "subtitle": "Everything you have raised, and where it stands.",
+    "filter": "Filter",
+    "tab": {
+      "open": "Open",
+      "resolved": "Resolved",
+      "all": "All"
+    },
+    "drafts": "Unfinished drafts",
+    "untitled": "Untitled concern",
+    "savedAt": "saved {date}",
+    "emptyTitle": "Nothing here yet",
+    "emptyDescription": "When you raise a concern it appears here with its full history."
+  },
+  "track": {
+    "title": "Track a concern",
+    "subtitle": "Enter the code from your confirmation, for example CC-2026-01042.",
+    "codeLabel": "Complaint code",
+    "track": "Track",
+    "throttled": "Too many lookups from this connection. Please wait a minute and try again.",
+    "notFound": "No concern found with that code. Check for a typo, or <signin>sign in</signin> to see everything you have raised."
+  },
+  "notifications": {
+    "bell": "Notifications",
+    "bellUnread": "Notifications, {count} unread",
+    "markAllRead": "Mark all read",
+    "empty": "Nothing yet."
+  },
+  "engage": {
+    "title": "Take part",
+    "subtitle": "Meet the office, vote on what matters, and put ideas forward.",
+    "appointments": {
+      "heading": "Meet the office",
+      "purpose": "What is it about?",
+      "date": "Preferred date",
+      "slot": "Preferred time (optional)",
+      "slotPlaceholder": "Morning",
+      "request": "Request an appointment",
+      "requested": "Requested. The office will confirm a time.",
+      "officeNote": "Office: {note}",
+      "cancelled": "Cancelled."
+    },
+    "callbacks": {
+      "heading": "Ask for a callback",
+      "phone": "Phone",
+      "topic": "Topic",
+      "bestTime": "Best time (optional)",
+      "bestTimePlaceholder": "After 6pm",
+      "request": "Request a callback",
+      "requested": "The office will call you back."
+    },
+    "polls": {
+      "heading": "Polls",
+      "yourVote": "Your vote",
+      "recorded": "Vote recorded.",
+      "votes": "{count, plural, one {# vote} other {# votes}}",
+      "closes": "closes {date}",
+      "closed": "closed"
+    },
+    "suggestions": {
+      "heading": "Ideas for the constituency",
+      "suggest": "Suggest something",
+      "title": "Title",
+      "idea": "The idea",
+      "post": "Post the idea",
+      "shared": "Shared with the constituency.",
+      "upvoted": "Upvoted.",
+      "voteRemoved": "Vote removed.",
+      "empty": "No ideas yet. Yours could be the first."
+    },
+    "volunteer": {
+      "heading": "Volunteer",
+      "skills": "What can you help with?",
+      "skillsPlaceholder": "Teaching, first aid, tree planting",
+      "availability": "When are you free?",
+      "availabilityPlaceholder": "Weekends",
+      "register": "Register as a volunteer",
+      "update": "Update my details",
+      "registered": "Thank you — the office will be in touch.",
+      "updated": "Details updated."
+    }
   }
 }
