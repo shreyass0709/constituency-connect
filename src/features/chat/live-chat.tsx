@@ -131,7 +131,13 @@ export function LiveChat({ viewerId, isStaff }: { viewerId: string; isStaff: boo
       ) : null}
 
       <div className="flex h-[32rem] flex-col rounded-2xl border">
-        <div ref={scroller} className="flex flex-1 flex-col gap-3 overflow-y-auto p-4">
+        <div
+          ref={scroller}
+          role="log"
+          aria-live="polite"
+          aria-label="Conversation"
+          className="flex flex-1 flex-col gap-3 overflow-y-auto p-4"
+        >
           {messages.length === 0 ? (
             <p className="m-auto max-w-xs text-center text-sm text-muted-foreground">
               {isStaff
@@ -174,7 +180,7 @@ export function LiveChat({ viewerId, isStaff }: { viewerId: string; isStaff: boo
             maxLength={2000}
             disabled={isStaff && !threadId}
           />
-          <Button type="submit" size="icon" aria-label="Send" disabled={sending || (isStaff && !threadId)}>
+          <Button type="submit" size="icon" aria-label="Send message" disabled={sending || (isStaff && !threadId)}>
             <Send />
           </Button>
         </form>

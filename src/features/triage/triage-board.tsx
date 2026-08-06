@@ -138,8 +138,11 @@ export function TriageBoard({
           </div>
 
           <div className="grid gap-1">
-            <span className="text-xs text-muted-foreground">Est. completion</span>
+            <label htmlFor="bulk-eta" className="text-xs text-muted-foreground">
+              Est. completion
+            </label>
             <Input
+              id="bulk-eta"
               type="date"
               className="w-40"
               value={eta}

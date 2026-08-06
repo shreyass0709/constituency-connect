@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { Button } from "@/components/ui/button";
+import { MAIN_CONTENT_ID, SkipLink } from "@/components/shared/skip-link";
 import { LanguageSwitcher } from "@/features/account/language-switcher";
 import { PUBLIC_NAV } from "@/constants/public-nav";
 import { aiEnabled } from "@/lib/ai/gemini";
@@ -12,6 +13,7 @@ export default async function PublicLayout({ children }: LayoutProps<"/">) {
 
   return (
     <>
+      <SkipLink label={site("skipToContent")} />
       <header className="sticky top-0 z-20 border-b bg-background/70 backdrop-blur">
         <div className="mx-auto flex h-16 max-w-6xl items-center gap-4 px-4">
           <Link href="/" className="font-heading text-lg font-semibold tracking-tight">
@@ -58,7 +60,9 @@ export default async function PublicLayout({ children }: LayoutProps<"/">) {
         </nav>
       </header>
 
-      <main className="flex-1">{children}</main>
+      <main id={MAIN_CONTENT_ID} tabIndex={-1} className="flex-1">
+        {children}
+      </main>
 
       <footer className="border-t">
         <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-10 text-sm text-muted-foreground sm:flex-row sm:items-center">

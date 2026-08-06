@@ -207,7 +207,8 @@
     "noResults": "No results.",
     "goTo": "Go to",
     "actions": "Actions",
-    "toggleTheme": "Toggle theme"
+    "toggleTheme": "Toggle theme",
+    "skipToContent": "Skip to content"
   },
   "field": {
     "navigate": "Navigate",
@@ -268,7 +269,8 @@
     "footerNav": "Footer",
     "tagline": "Citizen voice · Representative action · Visible outcome",
     "track": "Track",
-    "trackConcern": "Track a concern"
+    "trackConcern": "Track a concern",
+    "skipToContent": "Skip to content"
   },
   "settings": {
     "title": "Settings",

@@ -16,6 +16,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { CommandPalette } from "@/components/shared/command-palette";
+import { MAIN_CONTENT_ID, SkipLink } from "@/components/shared/skip-link";
 import { NotificationBell } from "@/features/notifications/notification-bell";
 import { NAV_BY_SECTION } from "@/constants/nav";
 import type { Section } from "@/lib/auth/permissions";
@@ -42,6 +43,7 @@ export function AppShell({
 
   return (
     <div className="flex min-h-full flex-1 flex-col md:grid md:grid-cols-[15rem_1fr]">
+      <SkipLink label={t("skipToContent")} />
       <aside className="sticky top-0 hidden h-dvh flex-col border-r px-3 py-4 md:flex">
         <Link href="/" className="px-3 pb-6 font-heading text-lg font-semibold tracking-tight">
           Constituency<span className="text-primary"> Connect</span>
@@ -74,7 +76,9 @@ export function AppShell({
           </div>
         </header>
 
-        <main className="flex-1 p-4 md:p-8">{children}</main>
+        <main id={MAIN_CONTENT_ID} tabIndex={-1} className="flex-1 p-4 md:p-8">
+          {children}
+        </main>
       </div>
 
       <nav className="fixed inset-x-0 bottom-0 z-10 flex border-t bg-background md:hidden">
