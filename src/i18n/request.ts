@@ -23,6 +23,15 @@ export function isLocale(value: unknown): value is Locale {
  * so the public pages trade ISR for being readable in Hindi. If that ever costs more than
  * it earns, the upgrade is `[locale]` routing with `localePrefix: "as-needed"` — not a
  * different i18n library.
+ *
+ * **Scope.** Translated: the public site, sign-in and onboarding, every citizen screen,
+ * and the field officer PWA — the surfaces the public actually meets. Deliberately not
+ * translated: the office and department consoles (triage, analytics, reports, content
+ * editors), whose users are trained staff working in the language the rest of the
+ * administration uses, and whose vocabulary is procedural rather than civic. Also not
+ * translated: text written *into* the database — timeline notes, audit entries — because
+ * those are a record of what happened, and a record does not change language when its
+ * reader does.
  */
 export default getRequestConfig(async () => {
   const cookie = (await cookies()).get(LOCALE_COOKIE)?.value;

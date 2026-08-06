@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { ChevronLeft, MapPin, Navigation } from "lucide-react";
 import { PriorityBadge, StatusChip } from "@/components/shared/status-chip";
 import { Timeline } from "@/components/shared/timeline";
-import { CATEGORY_LABEL, STATUS_HINT } from "@/constants/status";
+import { getTranslations } from "next-intl/server";
 import { requireUser } from "@/lib/auth/require-user";
 import { formatDate } from "@/lib/utils";
 import { getComplaintForViewer } from "@/features/complaints/queries";
@@ -16,6 +16,10 @@ export const metadata = { title: "Task" };
 export default async function FieldTaskPage({ params }: PageProps<"/field/[id]">) {
   const user = await requireUser("complaint.field_update");
   const { id } = await params;
+  const t = await getTranslations("field.detail");
+  const hint = await getTranslations("statusHint");
+  const category = await getTranslations("category");
+  const detail = await getTranslations("complaintDetail");
 
   const complaint = await getComplaintForViewer(id, user);
   if (!complaint) notFound();
@@ -32,7 +36,7 @@ export default async function FieldTaskPage({ params }: PageProps<"/field/[id]">
         className="inline-flex w-fit items-center gap-1 text-sm text-muted-foreground"
       >
         <ChevronLeft className="size-4" aria-hidden />
-        All tasks
+        {t("allTasks")}
       </Link>
 
       <header className="flex flex-col gap-2">
@@ -42,16 +46,16 @@ export default async function FieldTaskPage({ params }: PageProps<"/field/[id]">
           <PriorityBadge priority={complaint.priority} />
         </div>
         <h1 className="font-heading text-xl font-semibold tracking-tight">{complaint.title}</h1>
-        <p className="text-sm text-muted-foreground">{STATUS_HINT[complaint.status]}</p>
+        <p className="text-sm text-muted-foreground">{hint(complaint.status)}</p>
       </header>
 
       <div className="flex flex-col gap-2 rounded-2xl border p-4 text-sm">
         <p className="whitespace-pre-wrap">{complaint.description}</p>
         <p className="text-muted-foreground">
-          {CATEGORY_LABEL[complaint.category]}
+          {category(complaint.category)}
           {complaint.ward ? ` · ${complaint.ward.name}` : ""}
           {complaint.estimatedCompletion
-            ? ` · due ${formatDate(complaint.estimatedCompletion)}`
+            ? ` · ${t("due", { date: formatDate(complaint.estimatedCompletion) })}`
             : ""}
         </p>
         {complaint.address || complaint.landmark ? (
@@ -68,14 +72,14 @@ export default async function FieldTaskPage({ params }: PageProps<"/field/[id]">
             className="inline-flex w-fit items-center gap-2 rounded-lg border px-3 py-1.5 font-medium"
           >
             <Navigation className="size-4" aria-hidden />
-            Navigate there
+            {t("navigateThere")}
           </a>
         ) : null}
       </div>
 
       {reported.length > 0 ? (
         <section className="flex flex-col gap-2">
-          <h2 className="text-sm font-medium text-muted-foreground">What the citizen sent</h2>
+          <h2 className="text-sm font-medium text-muted-foreground">{t("citizenSent")}</h2>
           <ul className="flex flex-wrap gap-2">
             {reported.map((item) => (
               <li key={item.id}>
@@ -90,7 +94,7 @@ export default async function FieldTaskPage({ params }: PageProps<"/field/[id]">
                     />
                   ) : (
                     <span className="flex size-24 items-center justify-center rounded-xl border text-xs text-muted-foreground">
-                      {item.kind === "AUDIO" ? "Voice note" : "Video"}
+                      {item.kind === "AUDIO" ? detail("voiceNote") : detail("video")}
                     </span>
                   )}
                 </a>
@@ -107,7 +111,7 @@ export default async function FieldTaskPage({ params }: PageProps<"/field/[id]">
       />
 
       <section className="flex flex-col gap-3">
-        <h2 className="font-heading text-lg font-semibold">History</h2>
+        <h2 className="font-heading text-lg font-semibold">{detail("history")}</h2>
         <Timeline entries={complaint.timeline} />
       </section>
     </div>

@@ -14,6 +14,7 @@ import {
   TriangleAlert,
   UserCheck,
 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import type { ComplaintCategory, ComplaintStatus, Priority } from "@/generated/prisma/enums";
 import { Button } from "@/components/ui/button";
@@ -36,12 +37,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  CATEGORIES,
-  CATEGORY_LABEL,
-  PRIORITY_LABEL,
-  STATUS_LABEL,
-} from "@/constants/status";
+// CATEGORY_LABEL and PRIORITY_LABEL still come from the constants here: the triage
+// dialogs below are the staff console, which stays in English (see src/i18n/request.ts).
+import { CATEGORIES, CATEGORY_LABEL, PRIORITY_LABEL } from "@/constants/status";
 import type { ActionResult } from "@/lib/safe-action";
 import {
   acknowledgeComplaint,
@@ -78,6 +76,8 @@ export type ActionContext = {
 
 /** Every control on the detail page, filtered by what this viewer may actually do. */
 export function ComplaintActions(context: ActionContext) {
+  const t = useTranslations("complaintActions");
+  const statusLabel = useTranslations("status");
   const { allowed, canTriage, isOwner, status } = context;
   const run = useRunner();
 
@@ -92,10 +92,10 @@ export function ComplaintActions(context: ActionContext) {
       {isOwner && allowed.includes("CLOSED") ? (
         <Button
           disabled={run.busy}
-          onClick={() => run.call(() => confirmResolution({ id: context.id }), "Thank you — closed.")}
+          onClick={() => run.call(() => confirmResolution({ id: context.id }), t("closedThanks"))}
         >
           {run.busy ? <LoaderCircle className="animate-spin" /> : <Check />}
-          Yes, it is fixed
+          {t("confirmFixed")}
         </Button>
       ) : null}
 
@@ -104,14 +104,14 @@ export function ComplaintActions(context: ActionContext) {
           trigger={
             <Button variant="outline">
               <RotateCcw />
-              Not fixed — reopen
+              {t("reopen")}
             </Button>
           }
-          title="Reopen this concern"
-          description="Tell the office what is still wrong. It goes back into the queue."
-          label="What is still wrong?"
+          title={t("reopenTitle")}
+          description={t("reopenDescription")}
+          label={t("reopenLabel")}
           onSubmit={(reason) => reopenComplaint({ id: context.id, reason })}
-          success="Reopened. The office has been told."
+          success={t("reopened")}
         />
       ) : null}
 
@@ -187,12 +187,12 @@ export function ComplaintActions(context: ActionContext) {
           onClick={() =>
             run.call(
               () => advanceComplaint({ id: context.id, to: to as OfficerMove }),
-              `Moved to ${STATUS_LABEL[to].toLowerCase()}.`,
+              t("movedTo", { status: statusLabel(to).toLowerCase() }),
             )
           }
         >
           {run.busy ? <LoaderCircle className="animate-spin" /> : <UserCheck />}
-          {STATUS_LABEL[to]}
+          {statusLabel(to)}
         </Button>
       ))}
 
@@ -489,6 +489,7 @@ function CategoriseDialog({ id, category, priority, departmentId, departments }:
 }
 
 function RatingDialog({ id }: { id: string }) {
+  const t = useTranslations("complaintActions.rating");
   const [open, setOpen] = useState(false);
   const [rating, setRating] = useState(5);
   const [text, setText] = useState("");
@@ -499,20 +500,20 @@ function RatingDialog({ id }: { id: string }) {
       <DialogTrigger asChild>
         <Button>
           <Star />
-          Rate how it went
+          {t("rate")}
         </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>How did we do?</DialogTitle>
-          <DialogDescription>Your rating feeds the office&apos;s satisfaction score.</DialogDescription>
+          <DialogTitle>{t("title")}</DialogTitle>
+          <DialogDescription>{t("description")}</DialogDescription>
         </DialogHeader>
         <div className="flex gap-1">
           {[1, 2, 3, 4, 5].map((value) => (
             <button
               key={value}
               type="button"
-              aria-label={`${value} star${value > 1 ? "s" : ""}`}
+              aria-label={t("stars", { count: value })}
               aria-pressed={rating === value}
               onClick={() => setRating(value)}
               className="rounded p-1"
@@ -524,7 +525,7 @@ function RatingDialog({ id }: { id: string }) {
           ))}
         </div>
         <div className="grid gap-2">
-          <Label htmlFor="feedback">Anything to add? (optional)</Label>
+          <Label htmlFor="feedback">{t("comment")}</Label>
           <Textarea id="feedback" rows={3} value={text} onChange={(e) => setText(e.target.value)} />
         </div>
         <DialogFooter>
@@ -533,12 +534,12 @@ function RatingDialog({ id }: { id: string }) {
             onClick={async () => {
               const ok = await run.call(
                 () => submitFeedback({ id, rating, feedbackText: text || null }),
-                "Thank you for the feedback.",
+                t("thanks"),
               );
               if (ok) setOpen(false);
             }}
           >
-            Send
+            {t("send")}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -247,6 +247,12 @@
       "attached": "Signature attached.",
       "nothingSigned": "Nothing signed yet.",
       "saveFailed": "Could not save the signature."
+    },
+    "detail": {
+      "allTasks": "All tasks",
+      "due": "due {date}",
+      "navigateThere": "Navigate there",
+      "citizenSent": "What the citizen sent"
     }
   },
   "publicSite": {
@@ -459,5 +465,24 @@
     "yourQuestion": "Your question",
     "send": "Send",
     "failed": "Something went wrong. The FAQ page has the same answers."
+  },
+  "complaintActions": {
+    "confirmFixed": "Yes, it is fixed",
+    "closedThanks": "Thank you — closed.",
+    "reopen": "Not fixed — reopen",
+    "reopenTitle": "Reopen this concern",
+    "reopenDescription": "Tell the office what is still wrong. It goes back into the queue.",
+    "reopenLabel": "What is still wrong?",
+    "reopened": "Reopened. The office has been told.",
+    "movedTo": "Moved to {status}.",
+    "rating": {
+      "rate": "Rate how it went",
+      "title": "How did we do?",
+      "description": "Your rating feeds the office's satisfaction score.",
+      "stars": "{count, plural, one {# star} other {# stars}}",
+      "comment": "Anything to add? (optional)",
+      "send": "Send",
+      "thanks": "Thank you for the feedback."
+    }
   }
 }
