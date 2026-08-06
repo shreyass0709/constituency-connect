@@ -71,3 +71,14 @@ export const HOME_BY_ROLE: Record<Role, string> = {
   ADMIN: "/office",
   SUPER_ADMIN: "/office",
 };
+
+/** A role-scoped route group. Each has a layout that calls `requireSection`. */
+export type Section = "/dashboard" | "/office" | "/department" | "/field";
+
+/**
+ * Staff sections belong to exactly the roles that live in them; /dashboard is the
+ * citizen surface every signed-in user may use (staff raise complaints too).
+ */
+export function canEnterSection(role: Role, section: Section): boolean {
+  return section === "/dashboard" || HOME_BY_ROLE[role] === section;
+}

@@ -17,6 +17,8 @@ type Config<S extends z.ZodType, T> = {
   entity: string;
   schema: S;
   permission?: Permission;
+  /** Onboarding only — the one mutation a not-yet-onboarded user must be able to run. */
+  allowIncomplete?: boolean;
   handler: (input: z.output<S>, ctx: { user: CurrentUser }) => Promise<T>;
 };
 
@@ -42,7 +44,9 @@ export function defineAction<S extends z.ZodType, T>(config: Config<S, T>) {
     }
 
     // Throws a redirect for anonymous/forbidden callers — same guard as the layouts.
-    const user = await requireUser(config.permission);
+    const user = await requireUser(config.permission, {
+      allowIncomplete: config.allowIncomplete,
+    });
 
     let data: T;
     try {

@@ -3,7 +3,13 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { db } from "../db";
 import { auth } from "./index";
-import { can, HOME_BY_ROLE, type Permission } from "./permissions";
+import {
+  can,
+  canEnterSection,
+  HOME_BY_ROLE,
+  type Permission,
+  type Section,
+} from "./permissions";
 
 // Session + our own User row (role/ward/department live there, not in Better Auth).
 // `cache` dedupes the two queries across a single render pass.
@@ -40,11 +46,23 @@ export function needsOnboarding(user: CurrentUser): boolean {
  * The real access check — every protected layout and every mutation runs it.
  * Proxy (proxy.ts) only does the cheap cookie sniff; this is what actually enforces.
  */
-export async function requireUser(permission?: Permission): Promise<CurrentUser> {
+export async function requireUser(
+  permission?: Permission,
+  // `allowIncomplete` is for the onboarding page and its action only — everything else
+  // must not run for a half-set-up account.
+  options?: { allowIncomplete?: boolean },
+): Promise<CurrentUser> {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
   if (!user.isActive) redirect("/login?error=deactivated");
-  if (needsOnboarding(user)) redirect("/onboarding");
+  if (!options?.allowIncomplete && needsOnboarding(user)) redirect("/onboarding");
   if (permission && !can(user.role, permission)) redirect(HOME_BY_ROLE[user.role]);
+  return user;
+}
+
+/** Layout guard for the role-scoped route groups: wrong section → your own home. */
+export async function requireSection(section: Section): Promise<CurrentUser> {
+  const user = await requireUser();
+  if (!canEnterSection(user.role, section)) redirect(HOME_BY_ROLE[user.role]);
   return user;
 }
