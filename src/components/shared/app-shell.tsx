@@ -15,6 +15,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { CommandPalette } from "@/components/shared/command-palette";
+import { NotificationBell } from "@/features/notifications/notification-bell";
 import { NAV_BY_SECTION } from "@/constants/nav";
 import type { Section } from "@/lib/auth/permissions";
 import { signOut } from "@/lib/auth/client";
@@ -60,6 +61,7 @@ export function AppShell({
             <span className="hidden text-xs text-muted-foreground sm:inline">
               Press <kbd className="rounded border px-1 font-mono">⌘K</kbd>
             </span>
+            <NotificationBell />
             <UserMenu user={user} />
           </div>
         </header>
