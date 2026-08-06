@@ -9,6 +9,12 @@ const schema = z.object({
   BETTER_AUTH_SECRET: z.string().min(32),
   BETTER_AUTH_URL: z.url(),
   SMS_PROVIDER: z.enum(["console", "msg91"]).default("console"),
+  // Optional: without them the app runs fine, photo/voice attachments just stay off.
+  CLOUDINARY_CLOUD_NAME: z.string().min(1).optional(),
+  CLOUDINARY_API_KEY: z.string().min(1).optional(),
+  CLOUDINARY_API_SECRET: z.string().min(1).optional(),
+  /** Shared secret the cron routes require in `x-cron-secret`. */
+  CRON_SECRET: z.string().min(16).optional(),
 });
 
 const parsed = schema.safeParse(process.env);

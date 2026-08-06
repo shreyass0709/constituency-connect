@@ -27,6 +27,8 @@ const CARD_SELECT = {
 export type ComplaintCard = Prisma.ComplaintGetPayload<{ select: typeof CARD_SELECT }>;
 
 export type ComplaintFilters = {
+  /** Set for "my concerns" — a staff member's own complaints, not everyone's. */
+  citizenId?: string;
   status?: ComplaintStatus | ComplaintStatus[];
   category?: ComplaintCategory;
   departmentId?: string;
@@ -38,10 +40,11 @@ export type ComplaintFilters = {
 };
 
 function whereFrom(user: CurrentUser, filters: ComplaintFilters): Prisma.ComplaintWhereInput {
-  const { status, category, departmentId, wardId, assignedToId, q } = filters;
+  const { citizenId, status, category, departmentId, wardId, assignedToId, q } = filters;
   return {
     AND: [
       complaintScopeWhere(user),
+      citizenId ? { citizenId } : {},
       // Drafts are private scratch space — they surface only on the drafts screen.
       status ? { status: Array.isArray(status) ? { in: status } : status } : { status: { not: "DRAFT" } },
       category ? { category } : {},
@@ -167,6 +170,19 @@ export async function getComplaintForViewer(id: string, user: CurrentUser) {
   // Internal notes are for people who work complaints, not for the citizen who raised one.
   if (can(user.role, "complaint.view_all")) return complaint;
   return { ...complaint, timeline: complaint.timeline.filter((entry) => entry.isPublic) };
+}
+
+/** Departments and the officers who can be assigned work in them. */
+export async function assignmentOptions() {
+  const [departments, officers] = await Promise.all([
+    db.department.findMany({ select: { id: true, name: true }, orderBy: { name: "asc" } }),
+    db.user.findMany({
+      where: { role: { in: ["FIELD_OFFICER", "DEPARTMENT_OFFICER"] }, isActive: true },
+      select: { id: true, name: true, departmentId: true },
+      orderBy: { name: "asc" },
+    }),
+  ]);
+  return { departments, officers };
 }
 
 /** Public track-by-code: status and public timeline only — no names, no phone, no address. */
