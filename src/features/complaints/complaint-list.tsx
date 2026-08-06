@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Clock, Paperclip } from "lucide-react";
 import { PriorityBadge, StatusChip } from "@/components/shared/status-chip";
 import { CATEGORY_LABEL } from "@/constants/status";
-import { cn, daysBetween, formatDate } from "@/lib/utils";
+import { cn, formatDate } from "@/lib/utils";
 import type { ComplaintCard } from "./queries";
 
 /**
@@ -24,8 +24,7 @@ export function ComplaintList({
   return (
     <ul className="flex flex-col gap-2">
       {complaints.map((complaint) => {
-        const overdue =
-          complaint.dueAt && !complaint.completedAt && complaint.dueAt.getTime() < Date.now();
+        const { overdue, daysLeft } = complaint;
         return (
           <li key={complaint.id} className="rounded-2xl border transition-colors hover:bg-muted/40">
             <div className="flex items-start gap-3 p-4">
@@ -63,11 +62,9 @@ export function ComplaintList({
                       {complaint._count.media}
                     </span>
                   ) : null}
-                  {complaint.dueAt && !complaint.completedAt ? (
+                  {daysLeft !== null ? (
                     <span className={cn(overdue && "text-red-600 dark:text-red-300")}>
-                      {overdue
-                        ? `${Math.abs(daysBetween(complaint.dueAt, new Date()))} days overdue`
-                        : `${Math.max(daysBetween(new Date(), complaint.dueAt), 0)} days left`}
+                      {overdue ? `${Math.abs(daysLeft)} days overdue` : `${daysLeft} days left`}
                     </span>
                   ) : null}
                 </p>

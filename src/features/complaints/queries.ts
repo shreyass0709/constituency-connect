@@ -3,6 +3,7 @@ import type { ComplaintCategory, ComplaintStatus } from "@/generated/prisma/enum
 import { db } from "@/lib/db";
 import type { CurrentUser } from "@/lib/auth/require-user";
 import { can } from "@/lib/auth/permissions";
+import { daysBetween } from "@/lib/utils";
 import { canViewComplaint, complaintScopeWhere } from "./lib/access";
 
 // Reads for Server Components. Every one of them narrows by `complaintScopeWhere`, so a
@@ -24,7 +25,26 @@ const CARD_SELECT = {
   _count: { select: { media: true } },
 } satisfies Prisma.ComplaintSelect;
 
-export type ComplaintCard = Prisma.ComplaintGetPayload<{ select: typeof CARD_SELECT }>;
+/**
+ * The SLA countdown is derived here, not in the component: "is it late" depends on the
+ * current time, and reading the clock during render is impure.
+ */
+export type ComplaintCard = Prisma.ComplaintGetPayload<{ select: typeof CARD_SELECT }> & {
+  overdue: boolean;
+  daysLeft: number | null;
+};
+
+function withSla(
+  complaint: Prisma.ComplaintGetPayload<{ select: typeof CARD_SELECT }>,
+  now: Date,
+): ComplaintCard {
+  const settled = Boolean(complaint.completedAt);
+  return {
+    ...complaint,
+    overdue: Boolean(complaint.dueAt && !settled && complaint.dueAt < now),
+    daysLeft: complaint.dueAt && !settled ? daysBetween(now, complaint.dueAt) : null,
+  };
+}
 
 export type ComplaintFilters = {
   /** Set for "my concerns" — a staff member's own complaints, not everyone's. */
@@ -88,7 +108,11 @@ export async function listComplaints(user: CurrentUser, filters: ComplaintFilter
     db.complaint.count({ where }),
   ]);
 
-  return { items, meta: { page, limit, total, totalPages: Math.max(Math.ceil(total / limit), 1) } };
+  const now = new Date();
+  return {
+    items: items.map((complaint) => withSla(complaint, now)),
+    meta: { page, limit, total, totalPages: Math.max(Math.ceil(total / limit), 1) },
+  };
 }
 
 export async function listMyDrafts(userId: string) {
@@ -168,12 +192,23 @@ const DETAIL_SELECT = {
   },
 } satisfies Prisma.ComplaintSelect;
 
-export type ComplaintDetail = Prisma.ComplaintGetPayload<{ select: typeof DETAIL_SELECT }>;
+export type ComplaintDetail = Prisma.ComplaintGetPayload<{ select: typeof DETAIL_SELECT }> & {
+  overdue: boolean;
+  daysLeft: number | null;
+};
 
 /** Returns null when the complaint does not exist *or* is not this viewer's to see. */
 export async function getComplaintForViewer(id: string, user: CurrentUser) {
-  const complaint = await db.complaint.findUnique({ where: { id }, select: DETAIL_SELECT });
-  if (!complaint || !canViewComplaint(user, complaint)) return null;
+  const found = await db.complaint.findUnique({ where: { id }, select: DETAIL_SELECT });
+  if (!found || !canViewComplaint(user, found)) return null;
+
+  const now = new Date();
+  const settled = Boolean(found.completedAt);
+  const complaint = {
+    ...found,
+    overdue: Boolean(found.dueAt && !settled && found.dueAt < now),
+    daysLeft: found.dueAt && !settled ? daysBetween(now, found.dueAt) : null,
+  };
 
   // Internal notes are for people who work complaints, not for the citizen who raised one.
   if (can(user.role, "complaint.view_all")) return complaint;

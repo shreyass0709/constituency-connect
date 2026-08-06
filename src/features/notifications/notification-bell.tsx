@@ -31,10 +31,12 @@ const POLL_MS = 30_000;
  * SSE would be a whole connection story for a bell — the upgrade path is written down in
  * docs/06-roadmap.md and the day someone complains about the delay, it is one file.
  */
-export function NotificationBell() {
+export function NotificationBell({ initialUnread }: { initialUnread: number }) {
   const router = useRouter();
   const [items, setItems] = useState<Notification[]>([]);
-  const [unread, setUnread] = useState(0);
+  // Seeded by the server so the badge is right on first paint — the poll only keeps it
+  // fresh, and the effect below never has to setState on mount.
+  const [unread, setUnread] = useState(initialUnread);
 
   const load = useCallback(async () => {
     try {

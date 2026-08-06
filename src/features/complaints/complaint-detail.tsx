@@ -5,7 +5,7 @@ import { Timeline } from "@/components/shared/timeline";
 import { CATEGORY_LABEL, STATUS_HINT } from "@/constants/status";
 import { can } from "@/lib/auth/permissions";
 import type { CurrentUser } from "@/lib/auth/require-user";
-import { cn, daysBetween, formatDate } from "@/lib/utils";
+import { cn, formatDate } from "@/lib/utils";
 import { ComplaintActions } from "./complaint-actions";
 import { CopyCode } from "./copy-code";
 import { nextStatuses } from "./lib/workflow";
@@ -28,7 +28,7 @@ export function ComplaintDetail({
   const isOwner = complaint.citizenId === viewer.id;
   const canTriage = can(viewer.role, "complaint.triage");
   const allowed = nextStatuses({ role: viewer.role, isOwner }, complaint.status);
-  const daysLeft = complaint.dueAt ? daysBetween(new Date(), complaint.dueAt) : null;
+  const { daysLeft, overdue } = complaint;
 
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-6">
@@ -71,15 +71,13 @@ export function ComplaintDetail({
           <Field
             label="Resolution target"
             value={
-              complaint.completedAt || complaint.closedAt
+              daysLeft === null
                 ? formatDate(complaint.dueAt)
-                : daysLeft !== null && daysLeft < 0
+                : overdue
                   ? `${Math.abs(daysLeft)} days overdue`
                   : `${daysLeft} days left (by ${formatDate(complaint.dueAt)})`
             }
-            className={cn(
-              daysLeft !== null && daysLeft < 0 && !complaint.completedAt && "text-red-600 dark:text-red-300",
-            )}
+            className={cn(overdue && "text-red-600 dark:text-red-300")}
           />
         ) : null}
         {canTriage ? (

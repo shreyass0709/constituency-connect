@@ -257,8 +257,8 @@ export function RaiseWizard({ draft, homeWard }: { draft: Draft | null; homeWard
             />
           </dl>
           <p className="text-sm text-muted-foreground">
-            You'll get a tracking code the moment this is sent, and a notification at every
-            step after that.
+            You&apos;ll get a tracking code the moment this is sent, and a notification at
+            every step after that.
           </p>
         </div>
       ) : null}
