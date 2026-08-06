@@ -13,8 +13,6 @@ import { canTransition } from "../src/features/complaints/lib/workflow";
  * Deliberately not part of `npm test`: vitest runs in CI without a database.
  */
 
-type Actor = Awaited<ReturnType<typeof loadUser>>;
-
 async function loadUser(id: string) {
   return db.user.findUniqueOrThrow({
     where: { id },
