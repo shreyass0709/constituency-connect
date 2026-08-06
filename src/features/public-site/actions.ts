@@ -1,10 +1,11 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { aiEnabled } from "@/lib/ai/gemini";
 import { draftImpactStory } from "@/lib/ai/story";
 import { db } from "@/lib/db";
 import { ActionError, defineAction } from "@/lib/safe-action";
+import { PUBLIC_SITE_TAG } from "./queries";
 import { STATUS_LABEL } from "@/constants/status";
 import { daysBetween } from "@/lib/utils";
 import {
@@ -31,6 +32,10 @@ export const upsertActionStat = defineAction({
       ? await db.actionStat.update({ where: { id }, data, select: { id: true } })
       : await db.actionStat.create({ data, select: { id: true } });
 
+    // Public reads are cached for five minutes; a publish must not wait for that.
+    // `expire: 0` rather than the "max" profile: staff click straight through to the
+    // page they just published, and stale-while-revalidate would show them the old one.
+    revalidateTag(PUBLIC_SITE_TAG, { expire: 0 });
     revalidatePath("/");
     revalidatePath("/action");
     return stat;
@@ -44,6 +49,10 @@ export const deleteActionStat = defineAction({
   permission: "content.publish",
   handler: async ({ id }) => {
     await db.actionStat.delete({ where: { id } });
+    // Public reads are cached for five minutes; a publish must not wait for that.
+    // `expire: 0` rather than the "max" profile: staff click straight through to the
+    // page they just published, and stale-while-revalidate would show them the old one.
+    revalidateTag(PUBLIC_SITE_TAG, { expire: 0 });
     revalidatePath("/");
     revalidatePath("/action");
     return { id };
@@ -66,6 +75,10 @@ export const updateRepresentativeProfile = defineAction({
         })
       : await db.representative.create({ data: input, select: { id: true } });
 
+    // Public reads are cached for five minutes; a publish must not wait for that.
+    // `expire: 0` rather than the "max" profile: staff click straight through to the
+    // page they just published, and stale-while-revalidate would show them the old one.
+    revalidateTag(PUBLIC_SITE_TAG, { expire: 0 });
     revalidatePath("/");
     revalidatePath("/about");
     revalidatePath("/contact");
@@ -213,6 +226,10 @@ export const upsertImpactStory = defineAction({
           select: { id: true, slug: true },
         });
 
+    // Public reads are cached for five minutes; a publish must not wait for that.
+    // `expire: 0` rather than the "max" profile: staff click straight through to the
+    // page they just published, and stale-while-revalidate would show them the old one.
+    revalidateTag(PUBLIC_SITE_TAG, { expire: 0 });
     revalidatePath("/stories");
     revalidatePath(`/stories/${story.slug}`);
     return story;
@@ -232,6 +249,10 @@ export const publishImpactStory = defineAction({
       select: { id: true, slug: true, publishedAt: true },
     });
 
+    // Public reads are cached for five minutes; a publish must not wait for that.
+    // `expire: 0` rather than the "max" profile: staff click straight through to the
+    // page they just published, and stale-while-revalidate would show them the old one.
+    revalidateTag(PUBLIC_SITE_TAG, { expire: 0 });
     revalidatePath("/");
     revalidatePath("/stories");
     revalidatePath(`/stories/${story.slug}`);

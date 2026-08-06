@@ -9,9 +9,16 @@ const isDev = process.env.NODE_ENV === "development";
  * Leaflet tiles, gstatic + googleapis for the FCM service worker and its registration.
  *
  * ponytail: `'unsafe-inline'` for scripts rather than per-request nonces. Nonces force
- * every page dynamic, which would throw away the ISR the public site is built on and the
- * Lighthouse score gate M4 asks for. Revisit only if we ever host third-party script tags —
- * with no such tags, the XSS surface this closes is one React already escapes.
+ * every page dynamic and are incompatible with PPR. Revisit only if we ever host
+ * third-party script tags — with no such tags, the XSS surface this closes is one React
+ * already escapes.
+ *
+ * No `upgrade-insecure-requests`, deliberately. It is redundant here — HSTS below already
+ * forces the whole origin to HTTPS, and every external origin in this policy is an https
+ * one, so a plain-http third-party subresource is *blocked* rather than upgraded, which is
+ * the stronger outcome. What it does do is rewrite http://localhost to https://localhost
+ * during local testing, which breaks every prefetch: it cost a full second of measured LCP
+ * and a console error in the Lighthouse run that qualified gate M4.
  */
 const csp = [
   "default-src 'self'",
@@ -26,7 +33,6 @@ const csp = [
   "base-uri 'self'",
   "form-action 'self'",
   "frame-ancestors 'none'",
-  "upgrade-insecure-requests",
 ].join("; ");
 
 const nextConfig: NextConfig = {

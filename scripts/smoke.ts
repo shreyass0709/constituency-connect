@@ -7,7 +7,7 @@ import { aiMetaOf } from "../src/features/complaints/lib/ai-meta";
 import { UNCLASSIFIED_WHERE } from "../src/features/complaints/queries";
 import { distanceMeters } from "../src/features/complaints/lib/geo";
 import { listMapPins } from "../src/features/public-site/map";
-import { getStoryBySlug } from "../src/features/public-site/queries";
+import { storyBySlug } from "../src/features/public-site/queries";
 import { REPORT_TYPES, buildReport } from "../src/features/reports/queries";
 import { toCsv } from "../src/lib/csv";
 import { nextComplaintCode } from "../src/features/complaints/lib/code";
@@ -232,7 +232,7 @@ async function main() {
     });
 
     try {
-      const published = await getStoryBySlug(story.slug);
+      const published = await storyBySlug(story.slug);
       assert.ok(published, "a published story is readable without signing in");
       assert.equal(
         JSON.stringify(published).includes(citizen.name),
