@@ -1,0 +1,126 @@
+"use client";
+
+import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { Bell } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { cn, formatDateTime } from "@/lib/utils";
+
+type Notification = {
+  id: string;
+  title: string;
+  body: string;
+  link: string | null;
+  readAt: string | null;
+  createdAt: string;
+};
+
+const POLL_MS = 30_000;
+
+/**
+ * ponytail: a 30 s poll, not a socket. Vercel's serverless runtime has no websockets and
+ * SSE would be a whole connection story for a bell — the upgrade path is written down in
+ * docs/06-roadmap.md and the day someone complains about the delay, it is one file.
+ */
+export function NotificationBell() {
+  const router = useRouter();
+  const [items, setItems] = useState<Notification[]>([]);
+  const [unread, setUnread] = useState(0);
+
+  const load = useCallback(async () => {
+    try {
+      const response = await fetch("/api/v1/notifications", { cache: "no-store" });
+      if (!response.ok) return;
+      const { data } = await response.json();
+      setItems(data.items);
+      setUnread(data.unread);
+    } catch {
+      // Offline or a blip — the next tick tries again.
+    }
+  }, []);
+
+  useEffect(() => {
+    load();
+    const timer = setInterval(load, POLL_MS);
+    // Coming back to the tab should feel instant, not "up to 30 s stale".
+    const onFocus = () => load();
+    window.addEventListener("focus", onFocus);
+    return () => {
+      clearInterval(timer);
+      window.removeEventListener("focus", onFocus);
+    };
+  }, [load]);
+
+  async function markRead(id?: string) {
+    await fetch("/api/v1/notifications", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(id ? { id } : {}),
+    });
+    await load();
+    router.refresh();
+  }
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="relative"
+          aria-label={unread > 0 ? `Notifications, ${unread} unread` : "Notifications"}
+        >
+          <Bell className="size-4" />
+          {unread > 0 ? (
+            <span className="absolute -right-0.5 -top-0.5 flex size-4 items-center justify-center rounded-full bg-primary text-[0.6rem] font-medium text-primary-foreground">
+              {unread > 9 ? "9+" : unread}
+            </span>
+          ) : null}
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-80">
+        <DropdownMenuLabel className="flex items-center justify-between">
+          Notifications
+          {unread > 0 ? (
+            <button
+              type="button"
+              onClick={() => markRead()}
+              className="text-xs font-normal text-primary hover:underline"
+            >
+              Mark all read
+            </button>
+          ) : null}
+        </DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        {items.length === 0 ? (
+          <p className="px-2 py-6 text-center text-sm text-muted-foreground">Nothing yet.</p>
+        ) : (
+          items.map((item) => (
+            <DropdownMenuItem key={item.id} asChild className="flex-col items-start gap-0.5">
+              <Link
+                href={item.link ?? "/dashboard"}
+                onClick={() => markRead(item.id)}
+                className={cn("w-full", !item.readAt && "bg-primary/5")}
+              >
+                <span className="text-sm font-medium">{item.title}</span>
+                <span className="line-clamp-2 text-xs text-muted-foreground">{item.body}</span>
+                <span className="text-[0.65rem] text-muted-foreground">
+                  {formatDateTime(item.createdAt)}
+                </span>
+              </Link>
+            </DropdownMenuItem>
+          ))
+        )}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
