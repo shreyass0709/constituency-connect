@@ -39,6 +39,10 @@ const schema = z.object({
   FCM_CLIENT_EMAIL: optional(z.string().min(1)),
   FCM_PRIVATE_KEY: optional(z.string().min(1)),
 
+  // ── Error reporting (optional; unset means Sentry stays off entirely) ──
+  SENTRY_DSN: optional(z.url()),
+  NEXT_PUBLIC_SENTRY_DSN: optional(z.url()),
+
   // ── AI (optional; every AI feature has a deterministic fallback) ──
   GEMINI_API_KEY: optional(z.string().min(1)),
   /** Knob, not a constant: model names move faster than releases do. */
