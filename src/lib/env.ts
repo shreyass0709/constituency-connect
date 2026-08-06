@@ -25,6 +25,9 @@ const schema = z.object({
   CLOUDINARY_API_SECRET: optional(z.string().min(1)),
   /** Shared secret the cron routes require in `x-cron-secret`. */
   CRON_SECRET: optional(z.string().min(16)),
+  /** Both or neither — without them rate limits are per-instance instead of global. */
+  UPSTASH_REDIS_REST_URL: optional(z.url()),
+  UPSTASH_REDIS_REST_TOKEN: optional(z.string().min(1)),
 
   // ── Notification channels (all optional; a missing channel is simply skipped) ──
   RESEND_API_KEY: optional(z.string().min(1)),

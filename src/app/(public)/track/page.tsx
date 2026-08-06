@@ -1,3 +1,4 @@
+import { headers } from "next/headers";
 import Link from "next/link";
 import { Search } from "lucide-react";
 import { StatusChip } from "@/components/shared/status-chip";
@@ -5,6 +6,7 @@ import { Timeline } from "@/components/shared/timeline";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { CATEGORY_LABEL, STATUS_HINT } from "@/constants/status";
+import { rateLimit } from "@/lib/ratelimit";
 import { formatDate } from "@/lib/utils";
 import { getPublicComplaintByCode } from "@/features/complaints/queries";
 
@@ -15,15 +17,20 @@ export const metadata = {
 
 /**
  * No login, no PII: a code holder sees status and public history, never a name, phone
- * or exact address (docs/01 §2 privacy).
- *
- * ponytail: unthrottled. Public rate limits are a Phase 6 line item (Upstash) and cover
- * every public surface at once — a per-page limiter here would just be thrown away.
+ * or exact address (docs/01 §2 privacy). Lookups share the 60/min/IP public-API bucket
+ * so nobody can walk the code space (docs/02 §8).
  */
 export default async function TrackPage({ searchParams }: PageProps<"/track">) {
   const { code } = await searchParams;
   const query = typeof code === "string" ? code.trim() : "";
-  const complaint = query ? await getPublicComplaintByCode(query) : null;
+
+  let throttled = false;
+  if (query) {
+    const ip = (await headers()).get("x-forwarded-for")?.split(",")[0]?.trim() ?? "anonymous";
+    throttled = !(await rateLimit(`public-api:${ip}`, 60, 60_000)).ok;
+  }
+
+  const complaint = query && !throttled ? await getPublicComplaintByCode(query) : null;
 
   return (
     <section className="mx-auto flex w-full max-w-2xl flex-col gap-8 px-4 py-16">
@@ -48,7 +55,13 @@ export default async function TrackPage({ searchParams }: PageProps<"/track">) {
         </Button>
       </form>
 
-      {query && !complaint ? (
+      {throttled ? (
+        <p className="rounded-2xl border border-dashed p-6 text-center text-muted-foreground">
+          Too many lookups from this connection. Please wait a minute and try again.
+        </p>
+      ) : null}
+
+      {query && !throttled && !complaint ? (
         <p className="rounded-2xl border border-dashed p-6 text-center text-muted-foreground">
           No concern found with that code. Check for a typo, or{" "}
           <Link href="/login" className="text-primary hover:underline">

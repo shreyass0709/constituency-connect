@@ -18,7 +18,8 @@ export default async function ReportPrintPage({
 }: PageProps<"/office/reports/print">) {
   await requireUser("reports.export");
   const { type } = await searchParams;
-  const active = isReportType(typeof type === "string" ? type : null) ? type : "ward";
+  const requested = typeof type === "string" ? type : null;
+  const active = isReportType(requested) ? requested : "ward";
 
   const [report, representative] = await Promise.all([
     buildReport(active),

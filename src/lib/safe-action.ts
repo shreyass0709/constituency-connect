@@ -3,6 +3,7 @@ import type { Prisma } from "@/generated/prisma/client";
 import { audit } from "./audit";
 import type { Permission } from "./auth/permissions";
 import { requireUser, type CurrentUser } from "./auth/require-user";
+import { rateLimit } from "./ratelimit";
 
 /** Message safe to show the user. Anything else becomes a generic error. */
 export class ActionError extends Error {}
@@ -19,6 +20,8 @@ type Config<S extends z.ZodType, T> = {
   permission?: Permission;
   /** Onboarding only — the one mutation a not-yet-onboarded user must be able to run. */
   allowIncomplete?: boolean;
+  /** Per-user ceiling for actions that cost money or invite spam (docs/02 §8). */
+  limit?: { max: number; windowMs: number; message: string };
   handler: (input: z.output<S>, ctx: { user: CurrentUser }) => Promise<T>;
 };
 
@@ -28,10 +31,7 @@ function idOf(value: unknown): string | undefined {
   return typeof id === "string" ? id : undefined;
 }
 
-/**
- * The one wrapper every mutation goes through: Zod → session → RBAC → run → audit.
- * (Rate limiting joins this chain in Phase 6, when Upstash lands.)
- */
+/** The one wrapper every mutation goes through: Zod → session → RBAC → limit → run → audit. */
 export function defineAction<S extends z.ZodType, T>(config: Config<S, T>) {
   return async (rawInput: unknown): Promise<ActionResult<T>> => {
     const parsed = config.schema.safeParse(rawInput);
@@ -47,6 +47,15 @@ export function defineAction<S extends z.ZodType, T>(config: Config<S, T>) {
     const user = await requireUser(config.permission, {
       allowIncomplete: config.allowIncomplete,
     });
+
+    if (config.limit) {
+      const limit = await rateLimit(
+        `${config.name}:${user.id}`,
+        config.limit.max,
+        config.limit.windowMs,
+      );
+      if (!limit.ok) return { ok: false, error: config.limit.message };
+    }
 
     let data: T;
     try {

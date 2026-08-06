@@ -1,8 +1,9 @@
-import { betterAuth } from "better-auth";
+import { APIError, betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { nextCookies } from "better-auth/next-js";
 import { phoneNumber } from "better-auth/plugins";
 import { db } from "../db"; // relative (not @/lib/db) so the better-auth CLI's loader resolves it
+import { rateLimit } from "../ratelimit";
 import { sendOtpSms } from "./otp-sms";
 
 // Phone-OTP is primary (citizens may lack email). Google OAuth is added later once
@@ -14,6 +15,16 @@ export const auth = betterAuth({
   plugins: [
     phoneNumber({
       sendOTP: async ({ phoneNumber, code }) => {
+        // 3 per 10 minutes per phone (docs/02 §8). The IP limit on the route in front of
+        // this stops one machine hammering; this stops one *number* being hammered from
+        // many machines — which is the version that costs real money per SMS.
+        const limit = await rateLimit(`otp:${phoneNumber}`, 3, 600_000);
+        if (!limit.ok) {
+          throw new APIError("TOO_MANY_REQUESTS", {
+            message: "Too many codes requested. Please wait a few minutes and try again.",
+          });
+        }
+
         await sendOtpSms(phoneNumber, code);
       },
       requireVerification: true,

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { ComplaintCategory, ComplaintStatus } from "@/generated/prisma/enums";
+import { clientIp, limitOr429 } from "@/lib/ratelimit";
 import { listMapPins, listWardBoundaries } from "@/features/public-site/map";
 
 /**
@@ -10,6 +11,14 @@ import { listMapPins, listWardBoundaries } from "@/features/public-site/map";
 export const revalidate = 300;
 
 export async function GET(request: Request) {
+  const limited = await limitOr429(
+    `public-api:${clientIp(request)}`,
+    60,
+    60_000,
+    "Too many requests — try again shortly.",
+  );
+  if (limited) return limited;
+
   const params = new URL(request.url).searchParams;
   const status = params.get("status");
   const category = params.get("category");

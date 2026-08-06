@@ -4,7 +4,7 @@ import { streamChatReply } from "@/lib/ai/chat";
 import { aiEnabled } from "@/lib/ai/gemini";
 import { getCurrentUser } from "@/lib/auth/require-user";
 import { db } from "@/lib/db";
-import { rateLimit } from "@/lib/ratelimit";
+import { clientIp, limitOr429 } from "@/lib/ratelimit";
 
 const bodySchema = z.object({
   messages: z
@@ -33,14 +33,13 @@ export async function POST(request: Request) {
   }
 
   const user = await getCurrentUser();
-  const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "anonymous";
-  const limit = rateLimit(`chat:${user?.id ?? ip}`, 10, 60_000);
-  if (!limit.ok) {
-    return NextResponse.json(
-      { error: { code: "RATE_LIMITED", message: "One moment — too many questions at once." } },
-      { status: 429, headers: { "retry-after": String(limit.retryAfterSeconds) } },
-    );
-  }
+  const limited = await limitOr429(
+    `chat:${user?.id ?? clientIp(request)}`,
+    10,
+    60_000,
+    "One moment — too many questions at once.",
+  );
+  if (limited) return limited;
 
   const parsed = bodySchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) {

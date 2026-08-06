@@ -3,7 +3,7 @@ import { z } from "zod";
 import { can } from "@/lib/auth/permissions";
 import { getCurrentUser } from "@/lib/auth/require-user";
 import { db } from "@/lib/db";
-import { rateLimit } from "@/lib/ratelimit";
+import { limitOr429 } from "@/lib/ratelimit";
 
 /**
  * Live chat between a citizen and the office.
@@ -105,13 +105,8 @@ export async function POST(request: Request) {
   const user = await getCurrentUser();
   if (!user) return forbidden;
 
-  const limit = rateLimit(`chat-message:${user.id}`, 20, 60_000);
-  if (!limit.ok) {
-    return NextResponse.json(
-      { error: { code: "RATE_LIMITED", message: "Slow down a moment." } },
-      { status: 429, headers: { "retry-after": String(limit.retryAfterSeconds) } },
-    );
-  }
+  const limited = await limitOr429(`chat-message:${user.id}`, 20, 60_000, "Slow down a moment.");
+  if (limited) return limited;
 
   const parsed = sendSchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) {

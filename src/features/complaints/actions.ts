@@ -92,6 +92,13 @@ export const submitComplaint = defineAction({
   entity: "complaint",
   schema: submitComplaintSchema,
   permission: "complaint.create",
+  // 5 a day per citizen (docs/02 §8) — enough for a genuinely bad week, not enough to
+  // flood triage. Drafts are unlimited; only submitting counts.
+  limit: {
+    max: 5,
+    windowMs: 86_400_000,
+    message: "You have raised five concerns today. Please continue tomorrow, or call the office.",
+  },
   handler: async ({ id }, { user }) => {
     const draft = await db.complaint.findUnique({
       where: { id },
