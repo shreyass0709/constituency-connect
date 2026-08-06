@@ -4,6 +4,7 @@ import { requireUser } from "@/lib/auth/require-user";
 import { prefsOf } from "@/lib/notify/prefs";
 import { LanguageSwitcher } from "@/features/account/language-switcher";
 import { NotificationSettings } from "@/features/account/notification-settings";
+import { RevokeSessions } from "@/features/account/revoke-sessions";
 
 export const metadata = { title: "Settings" };
 
@@ -35,6 +36,8 @@ export default async function SettingsPage() {
         // "enable on this device" flow has anything to talk to.
         pushConfigured={Boolean(process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID)}
       />
+
+      <RevokeSessions />
     </div>
   );
 }

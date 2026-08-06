@@ -274,7 +274,14 @@
   },
   "settings": {
     "title": "Settings",
-    "subtitle": "How we reach you when something changes."
+    "subtitle": "How we reach you when something changes.",
+    "sessions": {
+      "heading": "Signed in elsewhere?",
+      "hint": "Ends every other session — a shared phone, an old device, a browser you forgot about. You stay signed in here.",
+      "action": "Sign out everywhere else",
+      "done": "Every other session has been signed out.",
+      "failed": "Could not sign out the other sessions."
+    }
   },
   "auth": {
     "signIn": "Sign in",

@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { getTranslations } from "next-intl/server";
+import { JsonLd } from "@/components/shared/json-ld";
 import type { Metadata } from "next";
 import { getRepresentative, listTestimonials } from "@/features/public-site/queries";
 
@@ -38,20 +39,17 @@ export default async function AboutPage() {
     <div className="mx-auto flex max-w-3xl flex-col gap-12 px-4 py-16">
       {/* Search engines get the office as a structured Person, so a name search surfaces
           the real office rather than a scrape of it. */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "Person",
-            name: representative.name,
-            jobTitle: representative.type,
-            description: representative.bio,
-            image: representative.photo ?? undefined,
-            worksFor: { "@type": "GovernmentOrganization", name: representative.constituencyName },
-            email: representative.contactEmail ?? undefined,
-            telephone: representative.contactPhone ?? undefined,
-          }),
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "Person",
+          name: representative.name,
+          jobTitle: representative.type,
+          description: representative.bio,
+          image: representative.photo ?? undefined,
+          worksFor: { "@type": "GovernmentOrganization", name: representative.constituencyName },
+          email: representative.contactEmail ?? undefined,
+          telephone: representative.contactPhone ?? undefined,
         }}
       />
 

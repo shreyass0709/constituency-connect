@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
+import { JsonLd } from "@/components/shared/json-ld";
 import { listFaqs } from "@/features/public-site/queries";
 
 export const revalidate = 300;
@@ -20,18 +21,15 @@ export default async function FaqPage() {
       {/* FAQPage structured data is what puts these answers straight into search results —
           the point of the page is that people find the answer without calling the office. */}
       {faqs.length > 0 ? (
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "FAQPage",
-              mainEntity: faqs.map((faq) => ({
-                "@type": "Question",
-                name: faq.question,
-                acceptedAnswer: { "@type": "Answer", text: faq.answer },
-              })),
-            }),
+        <JsonLd
+          data={{
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            mainEntity: faqs.map((faq) => ({
+              "@type": "Question",
+              name: faq.question,
+              acceptedAnswer: { "@type": "Answer", text: faq.answer },
+            })),
           }}
         />
       ) : null}
