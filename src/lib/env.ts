@@ -19,6 +19,9 @@ const schema = z.object({
   BETTER_AUTH_SECRET: z.string().min(32),
   BETTER_AUTH_URL: z.url(),
   SMS_PROVIDER: z.enum(["console", "msg91"]).default("console"),
+  /** Required only when SMS_PROVIDER=msg91; `sendOtpSms` throws if one is missing. */
+  MSG91_AUTH_KEY: optional(z.string().min(1)),
+  MSG91_TEMPLATE_ID: optional(z.string().min(1)),
   // Optional: without them the app runs fine, photo/voice attachments just stay off.
   CLOUDINARY_CLOUD_NAME: optional(z.string().min(1)),
   CLOUDINARY_API_KEY: optional(z.string().min(1)),
