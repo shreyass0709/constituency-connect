@@ -228,7 +228,8 @@
       "finishUpPlaceholder": "Summary the citizen will read (optional).",
       "markCompleted": "Mark completed",
       "completed": "Marked complete. The citizen has 7 days to confirm.",
-      "proofRequired": "At least one proof photo is required. The signature is optional."
+      "proofRequired": "At least one proof photo is required. The signature is optional.",
+      "queued": "Saved on this phone — it will be sent when you have signal."
     },
     "proof": {
       "addPhoto": "Add proof photo",
@@ -253,6 +254,13 @@
       "due": "due {date}",
       "navigateThere": "Navigate there",
       "citizenSent": "What the citizen sent"
+    },
+    "offline": {
+      "offline": "No signal. Notes and \"start work\" are saved on this phone.",
+      "syncing": "Back online — sending what was saved.",
+      "waiting": "{count, plural, one {# waiting} other {# waiting}}",
+      "sent": "{count, plural, one {# saved update sent} other {# saved updates sent}}.",
+      "dropped": "{count, plural, one {# saved update could not be applied} other {# saved updates could not be applied}} — the task had already moved on."
     }
   },
   "publicSite": {

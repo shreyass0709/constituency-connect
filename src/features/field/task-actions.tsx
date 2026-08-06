@@ -9,8 +9,9 @@ import type { ComplaintStatus } from "@/generated/prisma/enums";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { addWorkNote, advanceComplaint, completeWork } from "@/features/complaints/actions";
+import { completeWork } from "@/features/complaints/actions";
 import { suggestResponse } from "@/features/complaints/ai-actions";
+import { runOrQueue } from "./offline-queue";
 import { ProofCapture } from "./proof-capture";
 import { SignaturePad } from "./signature-pad";
 
@@ -37,20 +38,27 @@ export function TaskActions({
   const working = status === "IN_PROGRESS";
   const canStart = status === "ASSIGNED" || status === "DEPT_REVIEW" || status === "FIELD_VERIFICATION" || status === "REOPENED";
 
+  // Both of these go through the offline queue: an officer in a no-signal ward keeps
+  // working and the mutation is sent when the phone reconnects.
   async function start() {
     setBusy(true);
-    const result = await advanceComplaint({ id: complaintId, to: "IN_PROGRESS" });
+    const outcome = await runOrQueue("advance", { id: complaintId, to: "IN_PROGRESS" });
     setBusy(false);
-    if (!result.ok) return toast.error(result.error);
+    if (outcome.queued) return toast.success(t("queued"));
+    if (outcome.error) return toast.error(outcome.error);
     toast.success(t("started"));
     router.refresh();
   }
 
   async function saveNote() {
     setBusy(true);
-    const result = await addWorkNote({ id: complaintId, note });
+    const outcome = await runOrQueue("workNote", { id: complaintId, note });
     setBusy(false);
-    if (!result.ok) return toast.error(result.error);
+    if (outcome.queued) {
+      setNote("");
+      return toast.success(t("queued"));
+    }
+    if (outcome.error) return toast.error(outcome.error);
     setNote("");
     toast.success(t("noteAdded"));
     router.refresh();
