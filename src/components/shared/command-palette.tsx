@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useTheme } from "next-themes";
 import { LogOut, MoonStar, Sun } from "lucide-react";
 import {
@@ -18,6 +19,9 @@ import { signOut } from "@/lib/auth/client";
 // ⌘K shell: navigation + theme + sign out. Later phases add complaint search and
 // role quick-actions as extra <CommandGroup>s.
 export function CommandPalette({ items }: { items: NavItem[] }) {
+  const t = useTranslations("shell");
+  const nav = useTranslations("nav");
+  const common = useTranslations("common");
   const [open, setOpen] = useState(false);
   const router = useRouter();
   const { resolvedTheme, setTheme } = useTheme();
@@ -40,31 +44,31 @@ export function CommandPalette({ items }: { items: NavItem[] }) {
 
   return (
     <CommandDialog open={open} onOpenChange={setOpen}>
-      <CommandInput placeholder="Search or jump to…" />
+      <CommandInput placeholder={t("commandPlaceholder")} />
       <CommandList>
-        <CommandEmpty>No results.</CommandEmpty>
-        <CommandGroup heading="Go to">
+        <CommandEmpty>{t("noResults")}</CommandEmpty>
+        <CommandGroup heading={t("goTo")}>
           {items.map((item) => (
             <CommandItem
               key={item.href}
-              value={item.label}
+              value={nav(item.labelKey)}
               onSelect={() => run(() => router.push(item.href))}
             >
               <item.icon />
-              {item.label}
+              {nav(item.labelKey)}
             </CommandItem>
           ))}
         </CommandGroup>
-        <CommandGroup heading="Actions">
+        <CommandGroup heading={t("actions")}>
           <CommandItem
-            value="Toggle theme"
+            value={t("toggleTheme")}
             onSelect={() => run(() => setTheme(resolvedTheme === "dark" ? "light" : "dark"))}
           >
             {resolvedTheme === "dark" ? <Sun /> : <MoonStar />}
-            Toggle theme
+            {t("toggleTheme")}
           </CommandItem>
           <CommandItem
-            value="Sign out"
+            value={common("signOut")}
             onSelect={() =>
               run(async () => {
                 await signOut();
@@ -73,7 +77,7 @@ export function CommandPalette({ items }: { items: NavItem[] }) {
             }
           >
             <LogOut />
-            Sign out
+            {common("signOut")}
           </CommandItem>
         </CommandGroup>
       </CommandList>

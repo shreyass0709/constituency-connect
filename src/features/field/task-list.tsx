@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Navigation } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { PriorityBadge, StatusChip } from "@/components/shared/status-chip";
-import { CATEGORY_LABEL } from "@/constants/status";
 import { distanceMeters } from "@/features/complaints/lib/geo";
 import type { ComplaintCard } from "@/features/complaints/queries";
 import { cn } from "@/lib/utils";
@@ -16,6 +16,8 @@ type Position = { latitude: number; longitude: number };
  * server's order — a field officer with GPS off still gets a working list.
  */
 export function TaskList({ tasks }: { tasks: ComplaintCard[] }) {
+  const t = useTranslations("field");
+  const category = useTranslations("category");
   const [position, setPosition] = useState<Position | null>(null);
 
   useEffect(() => {
@@ -62,7 +64,7 @@ export function TaskList({ tasks }: { tasks: ComplaintCard[] }) {
               </div>
               <p className="font-medium">{task.title}</p>
               <p className="text-xs text-muted-foreground">
-                {CATEGORY_LABEL[task.category]}
+                {category(task.category)}
                 {task.address ? ` · ${task.address}` : ""}
                 {task.ward ? ` · ${task.ward.name}` : ""}
               </p>
@@ -76,7 +78,7 @@ export function TaskList({ tasks }: { tasks: ComplaintCard[] }) {
                 className="inline-flex w-fit items-center gap-2 rounded-lg border px-3 py-1.5 text-sm font-medium"
               >
                 <Navigation className="size-4" aria-hidden />
-                Navigate
+                {t("navigate")}
               </a>
             ) : null}
           </div>

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Clock, Paperclip } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { PriorityBadge, StatusChip } from "@/components/shared/status-chip";
-import { CATEGORY_LABEL } from "@/constants/status";
 import { cn, formatDate } from "@/lib/utils";
 import type { ComplaintCard } from "./queries";
 
@@ -24,6 +24,9 @@ export function ComplaintList({
   /** Staff-only row extras — the AI suggestion strip. Never rendered for citizens. */
   renderExtra?: (complaint: ComplaintCard) => React.ReactNode;
 }) {
+  const t = useTranslations("complaintList");
+  const category = useTranslations("category");
+
   return (
     <ul className="flex flex-col gap-2">
       {complaints.map((complaint) => {
@@ -36,7 +39,7 @@ export function ComplaintList({
                   type="checkbox"
                   checked={selected?.has(complaint.id) ?? false}
                   onChange={() => onToggle(complaint.id)}
-                  aria-label={`Select ${complaint.code}`}
+                  aria-label={t("select", { code: complaint.code })}
                   className="mt-1 size-4 accent-primary"
                 />
               ) : null}
@@ -48,17 +51,17 @@ export function ComplaintList({
                   {overdue ? (
                     <span className="inline-flex items-center gap-1 rounded-full bg-red-500/10 px-2.5 py-0.5 text-xs font-medium text-red-600 dark:text-red-300">
                       <Clock className="size-3" aria-hidden />
-                      Overdue
+                      {t("overdue")}
                     </span>
                   ) : null}
                 </div>
                 <p className="truncate font-medium">{complaint.title}</p>
                 <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
-                  <span>{CATEGORY_LABEL[complaint.category]}</span>
+                  <span>{category(complaint.category)}</span>
                   {complaint.ward ? <span>{complaint.ward.name}</span> : null}
                   {complaint.department ? <span>{complaint.department.name}</span> : null}
-                  {complaint.assignedTo ? <span>Officer: {complaint.assignedTo.name}</span> : null}
-                  <span>Raised {formatDate(complaint.createdAt)}</span>
+                  {complaint.assignedTo ? <span>{t("officer", { name: complaint.assignedTo.name })}</span> : null}
+                  <span>{t("raised", { date: formatDate(complaint.createdAt) })}</span>
                   {complaint._count.media > 0 ? (
                     <span className="inline-flex items-center gap-1">
                       <Paperclip className="size-3" aria-hidden />
@@ -67,7 +70,9 @@ export function ComplaintList({
                   ) : null}
                   {daysLeft !== null ? (
                     <span className={cn(overdue && "text-red-600 dark:text-red-300")}>
-                      {overdue ? `${Math.abs(daysLeft)} days overdue` : `${daysLeft} days left`}
+                      {overdue
+                        ? t("daysOverdue", { days: Math.abs(daysLeft) })
+                        : t("daysLeft", { days: daysLeft })}
                     </span>
                   ) : null}
                 </p>

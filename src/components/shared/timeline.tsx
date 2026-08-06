@@ -1,5 +1,6 @@
+import { useTranslations } from "next-intl";
 import type { ComplaintStatus, TimelineType } from "@/generated/prisma/enums";
-import { STATUS_CLASS, STATUS_LABEL } from "@/constants/status";
+import { STATUS_CLASS } from "@/constants/status";
 import { cn, formatDateTime } from "@/lib/utils";
 
 export type TimelineEntryView = {
@@ -12,21 +13,13 @@ export type TimelineEntryView = {
   actor?: { name: string } | null;
 };
 
-const TYPE_LABEL: Record<TimelineType, string> = {
-  STATUS_CHANGE: "Status changed",
-  ASSIGNMENT: "Assigned",
-  COMMENT: "Note added",
-  MEDIA_ADDED: "Photo or recording added",
-  AI_ACTION: "Automatic tagging",
-  FEEDBACK: "Feedback",
-  ESCALATION: "Escalated",
-  MERGE: "Merged with another report",
-};
-
 /** Append-only history — the citizen's trust surface (docs/05-ui.md §2). */
 export function Timeline({ entries }: { entries: TimelineEntryView[] }) {
+  const t = useTranslations("timeline");
+  const status = useTranslations("status");
+
   if (entries.length === 0) {
-    return <p className="text-sm text-muted-foreground">Nothing has happened yet.</p>;
+    return <p className="text-sm text-muted-foreground">{t("empty")}</p>;
   }
 
   return (
@@ -43,20 +36,20 @@ export function Timeline({ entries }: { entries: TimelineEntryView[] }) {
           />
           <div className="flex flex-wrap items-baseline gap-x-2">
             <span className="font-medium">
-              {entry.toStatus ? STATUS_LABEL[entry.toStatus] : TYPE_LABEL[entry.type]}
+              {entry.toStatus ? status(entry.toStatus) : t(`type.${entry.type}`)}
             </span>
             <time className="text-xs text-muted-foreground" dateTime={new Date(entry.createdAt).toISOString()}>
               {formatDateTime(entry.createdAt)}
             </time>
             {entry.isPublic === false ? (
               <span className="rounded bg-muted px-1.5 py-0.5 text-[0.65rem] uppercase tracking-wide text-muted-foreground">
-                Internal
+                {t("internal")}
               </span>
             ) : null}
           </div>
           {entry.note ? <p className="mt-1 text-sm text-muted-foreground">{entry.note}</p> : null}
           {entry.actor ? (
-            <p className="mt-1 text-xs text-muted-foreground">by {entry.actor.name}</p>
+            <p className="mt-1 text-xs text-muted-foreground">{t("by", { name: entry.actor.name })}</p>
           ) : null}
         </li>
       ))}

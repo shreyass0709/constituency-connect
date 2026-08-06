@@ -3,13 +3,14 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowRight, Check, ChevronLeft, LoaderCircle, Locate, Send } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import type { ComplaintCategory } from "@/generated/prisma/enums";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { CATEGORIES, CATEGORY_ICON, CATEGORY_LABEL } from "@/constants/status";
+import { CATEGORIES, CATEGORY_ICON } from "@/constants/status";
 import { cn } from "@/lib/utils";
 import { saveDraft, submitComplaint } from "./actions";
 import { transcribeVoiceNote } from "./ai-actions";
@@ -27,9 +28,11 @@ type Draft = {
   media: AttachedMedia[];
 };
 
-const STEPS = ["What", "Where", "Review"] as const;
+const STEPS = ["what", "where", "review"] as const;
 
 export function RaiseWizard({ draft, homeWard }: { draft: Draft | null; homeWard: string | null }) {
+  const t = useTranslations("raise");
+  const categoryLabel = useTranslations("category");
   const router = useRouter();
   const [step, setStep] = useState(0);
   const [id, setId] = useState<string | null>(draft?.id ?? null);
@@ -68,9 +71,9 @@ export function RaiseWizard({ draft, homeWard }: { draft: Draft | null; homeWard
 
   async function next() {
     if (step === 0) {
-      if (!category) return toast.error("Pick what this is about.");
-      if (title.trim().length < 5) return toast.error("Give it a short title.");
-      if (description.trim().length < 15) return toast.error("Tell us a little more.");
+      if (!category) return toast.error(t("errors.category"));
+      if (title.trim().length < 5) return toast.error(t("errors.title"));
+      if (description.trim().length < 15) return toast.error(t("errors.description"));
     }
     setBusy(true);
     const savedId = await persist();
@@ -86,7 +89,7 @@ export function RaiseWizard({ draft, homeWard }: { draft: Draft | null; homeWard
     const result = await submitComplaint({ id: savedId });
     setBusy(false);
     if (!result.ok) return toast.error(result.error);
-    toast.success(`Received — ${result.data.code}`);
+    toast.success(t("sent", { code: result.data.code }));
     router.push(`/dashboard/complaints/${result.data.id}?new=1`);
   }
 
@@ -100,25 +103,25 @@ export function RaiseWizard({ draft, homeWard }: { draft: Draft | null; homeWard
     setTranscribing(false);
     if (!result.ok) return toast.message(result.error);
     setDescription((current) => (current ? `${current}\n\n${result.data.text}` : result.data.text));
-    toast.success("Added what you said — edit it if we got a word wrong.");
+    toast.success(t("transcribed"));
   }
 
   function useMyLocation() {
-    if (!navigator.geolocation) return toast.error("This device cannot share a location.");
+    if (!navigator.geolocation) return toast.error(t("errors.noGeolocation"));
     navigator.geolocation.getCurrentPosition(
       (position) => {
         setLatitude(Number(position.coords.latitude.toFixed(6)));
         setLongitude(Number(position.coords.longitude.toFixed(6)));
-        toast.success("Location captured.");
+        toast.success(t("locationCaptured"));
       },
-      () => toast.error("Could not get your location. Type the address instead."),
+      () => toast.error(t("errors.locationFailed")),
       { enableHighAccuracy: true, timeout: 10_000 },
     );
   }
 
   return (
     <div className="flex flex-col gap-6">
-      <ol className="flex items-center gap-2 text-sm" aria-label="Progress">
+      <ol className="flex items-center gap-2 text-sm" aria-label={t("progress")}>
         {STEPS.map((label, index) => (
           <li key={label} className="flex items-center gap-2">
             <span
@@ -133,14 +136,14 @@ export function RaiseWizard({ draft, homeWard }: { draft: Draft | null; homeWard
               )}
             >
               {index < step ? <Check className="mr-1 inline size-3" /> : null}
-              {label}
+              {t(`step.${label}`)}
             </span>
             {index < STEPS.length - 1 ? <span className="text-muted-foreground">—</span> : null}
           </li>
         ))}
         {saved ? (
           <li className="ml-auto text-xs text-muted-foreground" aria-live="polite">
-            Draft saved
+            {t("draftSaved")}
           </li>
         ) : null}
       </ol>
@@ -148,7 +151,7 @@ export function RaiseWizard({ draft, homeWard }: { draft: Draft | null; homeWard
       {step === 0 ? (
         <div className="flex flex-col gap-5">
           <fieldset className="flex flex-col gap-3">
-            <legend className="mb-2 font-medium">What is this about?</legend>
+            <legend className="mb-2 font-medium">{t("whatAbout")}</legend>
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
               {CATEGORIES.map((value) => {
                 const Icon = CATEGORY_ICON[value];
@@ -165,7 +168,7 @@ export function RaiseWizard({ draft, homeWard }: { draft: Draft | null; homeWard
                     )}
                   >
                     <Icon className="size-5" aria-hidden />
-                    {CATEGORY_LABEL[value]}
+                    {categoryLabel(value)}
                   </button>
                 );
               })}
@@ -173,31 +176,31 @@ export function RaiseWizard({ draft, homeWard }: { draft: Draft | null; homeWard
           </fieldset>
 
           <div className="grid gap-2">
-            <Label htmlFor="title">Give it a short title</Label>
+            <Label htmlFor="title">{t("titleLabel")}</Label>
             <Input
               id="title"
               value={title}
               maxLength={120}
               onChange={(event) => setTitle(event.target.value)}
-              placeholder="Pothole near Ganesh temple"
+              placeholder={t("titlePlaceholder")}
             />
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor="description">What is happening?</Label>
+            <Label htmlFor="description">{t("descriptionLabel")}</Label>
             <Textarea
               id="description"
               value={description}
               maxLength={4000}
               rows={5}
               onChange={(event) => setDescription(event.target.value)}
-              placeholder="Describe the problem, how long it has been there, and who it affects."
+              placeholder={t("descriptionPlaceholder")}
             />
           </div>
 
           {id ? (
             <div className="grid gap-2">
-              <Label>Photos, video or a voice note</Label>
+              <Label>{t("mediaLabel")}</Label>
               <MediaUploader
                 complaintId={id}
                 initial={draft?.media ?? []}
@@ -205,13 +208,13 @@ export function RaiseWizard({ draft, homeWard }: { draft: Draft | null; homeWard
               />
               {transcribing ? (
                 <p className="text-xs text-muted-foreground" aria-live="polite">
-                  Writing down what you said…
+                  {t("transcribing")}
                 </p>
               ) : null}
             </div>
           ) : (
             <p className="text-sm text-muted-foreground">
-              Photos and voice notes can be added once you continue past this step.
+              {t("mediaLater")}
             </p>
           )}
         </div>
@@ -220,20 +223,20 @@ export function RaiseWizard({ draft, homeWard }: { draft: Draft | null; homeWard
       {step === 1 ? (
         <div className="flex flex-col gap-5">
           <div>
-            <h2 className="font-medium">Where is it?</h2>
+            <h2 className="font-medium">{t("whereLabel")}</h2>
             <p className="text-sm text-muted-foreground">
               {latitude && longitude
-                ? `Pinned at ${latitude}, ${longitude}.`
+                ? t("pinned", { latitude, longitude })
                 : homeWard
-                  ? `Without a pin we'll file this under your ward, ${homeWard}.`
-                  : "Share your location or describe where it is."}
+                  ? t("noPinWard", { ward: homeWard })
+                  : t("noPin")}
             </p>
           </div>
 
           <div>
             <Button type="button" variant="outline" onClick={useMyLocation}>
               <Locate />
-              Use my current location
+              {t("useLocation")}
             </Button>
           </div>
 
@@ -242,24 +245,24 @@ export function RaiseWizard({ draft, homeWard }: { draft: Draft | null; homeWard
               this same lat/lng state. */}
 
           <div className="grid gap-2">
-            <Label htmlFor="address">Address or area</Label>
+            <Label htmlFor="address">{t("addressLabel")}</Label>
             <Input
               id="address"
               value={address}
               maxLength={200}
               onChange={(event) => setAddress(event.target.value)}
-              placeholder="Market Road, near the bus stop"
+              placeholder={t("addressPlaceholder")}
             />
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor="landmark">Nearest landmark (optional)</Label>
+            <Label htmlFor="landmark">{t("landmarkLabel")}</Label>
             <Input
               id="landmark"
               value={landmark}
               maxLength={200}
               onChange={(event) => setLandmark(event.target.value)}
-              placeholder="Opposite the temple"
+              placeholder={t("landmarkPlaceholder")}
             />
           </div>
         </div>
@@ -267,13 +270,13 @@ export function RaiseWizard({ draft, homeWard }: { draft: Draft | null; homeWard
 
       {step === 2 ? (
         <div className="flex flex-col gap-4">
-          <h2 className="font-medium">Ready to send</h2>
+          <h2 className="font-medium">{t("readyToSend")}</h2>
           <dl className="grid gap-3 rounded-2xl border p-4 text-sm">
-            <Row label="About" value={category ? CATEGORY_LABEL[category] : "—"} />
-            <Row label="Title" value={title} />
-            <Row label="Details" value={description} />
+            <Row label={t("review.about")} value={category ? categoryLabel(category) : "—"} />
+            <Row label={t("review.title")} value={title} />
+            <Row label={t("review.details")} value={description} />
             <Row
-              label="Where"
+              label={t("review.where")}
               value={
                 [address, landmark].filter(Boolean).join(" · ") ||
                 (latitude && longitude ? `${latitude}, ${longitude}` : homeWard ?? "—")
@@ -281,8 +284,7 @@ export function RaiseWizard({ draft, homeWard }: { draft: Draft | null; homeWard
             />
           </dl>
           <p className="text-sm text-muted-foreground">
-            You&apos;ll get a tracking code the moment this is sent, and a notification at
-            every step after that.
+            {t("afterSend")}
           </p>
         </div>
       ) : null}
@@ -291,18 +293,18 @@ export function RaiseWizard({ draft, homeWard }: { draft: Draft | null; homeWard
         {step > 0 ? (
           <Button type="button" variant="ghost" onClick={() => setStep((c) => c - 1)} disabled={busy}>
             <ChevronLeft />
-            Back
+            {t("back")}
           </Button>
         ) : null}
         {step < STEPS.length - 1 ? (
           <Button type="button" onClick={next} disabled={busy} className="ml-auto">
             {busy ? <LoaderCircle className="animate-spin" /> : <ArrowRight />}
-            Continue
+            {t("continue")}
           </Button>
         ) : (
           <Button type="button" onClick={submit} disabled={busy} className="ml-auto">
             {busy ? <LoaderCircle className="animate-spin" /> : <Send />}
-            Send this concern
+            {t("send")}
           </Button>
         )}
       </div>

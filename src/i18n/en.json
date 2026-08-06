@@ -1,0 +1,224 @@
+{
+  "status": {
+    "DRAFT": "Draft",
+    "SUBMITTED": "Submitted",
+    "ACKNOWLEDGED": "Acknowledged",
+    "ASSIGNED": "Assigned",
+    "DEPT_REVIEW": "Department review",
+    "FIELD_VERIFICATION": "Field verification",
+    "IN_PROGRESS": "Work in progress",
+    "COMPLETED": "Completed — confirm",
+    "CLOSED": "Closed",
+    "REJECTED": "Rejected",
+    "REOPENED": "Reopened"
+  },
+  "statusHint": {
+    "DRAFT": "Not submitted yet — finish and send it.",
+    "SUBMITTED": "Received. The office will review it shortly.",
+    "ACKNOWLEDGED": "The office has read your concern.",
+    "ASSIGNED": "Handed to a department and an officer.",
+    "DEPT_REVIEW": "The department is reviewing the details.",
+    "FIELD_VERIFICATION": "An officer is verifying it on site.",
+    "IN_PROGRESS": "Work has started.",
+    "COMPLETED": "Marked done. Please confirm or reopen within 7 days.",
+    "CLOSED": "Resolved and closed.",
+    "REJECTED": "Could not be taken up — see the reason below.",
+    "REOPENED": "You reopened this. The office is looking again."
+  },
+  "priority": {
+    "LOW": "Low",
+    "MEDIUM": "Medium",
+    "HIGH": "High",
+    "URGENT": "Urgent"
+  },
+  "category": {
+    "ROAD": "Road",
+    "DRAINAGE": "Drainage",
+    "STREET_LIGHT": "Street light",
+    "WATER": "Water",
+    "ELECTRICITY": "Electricity",
+    "GARBAGE": "Garbage",
+    "SCHOOL": "School",
+    "HOSPITAL": "Health",
+    "PENSION": "Pension",
+    "HOUSING": "Housing",
+    "PUBLIC_SAFETY": "Public safety",
+    "TRANSPORT": "Transport",
+    "AGRICULTURE": "Agriculture",
+    "ENVIRONMENT": "Environment",
+    "OTHER": "Something else"
+  },
+  "complaintDetail": {
+    "received": "We have your concern",
+    "receivedHint": "Keep this code. The office reviews it, assigns a department, and you get a notification at every step — no need to follow up.",
+    "private": "Private",
+    "notSet": "Not set",
+    "notRouted": "Not routed yet",
+    "notAssigned": "Not assigned yet",
+    "noPhone": "no phone",
+    "daysOverdue": "{days} days overdue",
+    "daysLeft": "{days} days left (by {date})",
+    "whatWasReported": "What was reported",
+    "openOnMap": "Open the location on a map",
+    "reason": "Reason:",
+    "followInstead": "Follow <code></code> for updates.",
+    "attachments": "Attachments",
+    "voiceNote": "Voice note",
+    "video": "Video",
+    "history": "History",
+    "field": {
+      "category": "Category",
+      "ward": "Ward",
+      "department": "Department",
+      "officer": "Officer",
+      "raised": "Raised",
+      "estimated": "Estimated completion",
+      "target": "Resolution target",
+      "raisedBy": "Raised by"
+    }
+  },
+  "complaintList": {
+    "select": "Select {code}",
+    "overdue": "Overdue",
+    "officer": "Officer: {name}",
+    "raised": "Raised {date}",
+    "daysOverdue": "{days} days overdue",
+    "daysLeft": "{days} days left"
+  },
+  "raise": {
+    "progress": "Progress",
+    "step": {
+      "what": "What",
+      "where": "Where",
+      "review": "Review"
+    },
+    "draftSaved": "Draft saved",
+    "whatAbout": "What is this about?",
+    "titleLabel": "Give it a short title",
+    "titlePlaceholder": "Pothole near Ganesh temple",
+    "descriptionLabel": "What is happening?",
+    "descriptionPlaceholder": "Describe the problem, how long it has been there, and who it affects.",
+    "mediaLabel": "Photos, video or a voice note",
+    "mediaLater": "Photos and voice notes can be added once you continue past this step.",
+    "transcribing": "Writing down what you said…",
+    "transcribed": "Added what you said — edit it if we got a word wrong.",
+    "whereLabel": "Where is it?",
+    "pinned": "Pinned at {latitude}, {longitude}.",
+    "noPinWard": "Without a pin we'll file this under your ward, {ward}.",
+    "noPin": "Share your location or describe where it is.",
+    "useLocation": "Use my current location",
+    "locationCaptured": "Location captured.",
+    "addressLabel": "Address or area",
+    "addressPlaceholder": "Market Road, near the bus stop",
+    "landmarkLabel": "Nearest landmark (optional)",
+    "landmarkPlaceholder": "Opposite the temple",
+    "readyToSend": "Ready to send",
+    "review": {
+      "about": "About",
+      "title": "Title",
+      "details": "Details",
+      "where": "Where"
+    },
+    "afterSend": "You'll get a tracking code the moment this is sent, and a notification at every step after that.",
+    "back": "Back",
+    "continue": "Continue",
+    "send": "Send this concern",
+    "sent": "Received — {code}",
+    "errors": {
+      "category": "Pick what this is about.",
+      "title": "Give it a short title.",
+      "description": "Tell us a little more.",
+      "noGeolocation": "This device cannot share a location.",
+      "locationFailed": "Could not get your location. Type the address instead."
+    }
+  },
+  "timeline": {
+    "empty": "Nothing has happened yet.",
+    "internal": "Internal",
+    "by": "by {name}",
+    "type": {
+      "STATUS_CHANGE": "Status changed",
+      "ASSIGNMENT": "Assigned",
+      "COMMENT": "Note added",
+      "MEDIA_ADDED": "Photo or recording added",
+      "AI_ACTION": "Automatic tagging",
+      "FEEDBACK": "Feedback",
+      "ESCALATION": "Escalated",
+      "MERGE": "Merged with another report"
+    }
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "raise": "Raise",
+    "concerns": "Concerns",
+    "engage": "Take part",
+    "messages": "Messages",
+    "settings": "Settings",
+    "myTasks": "My tasks",
+    "triage": "Triage",
+    "complaints": "Complaints",
+    "engagement": "Engagement",
+    "analytics": "Analytics",
+    "reports": "Reports",
+    "content": "Content",
+    "queue": "Queue"
+  },
+  "publicNav": {
+    "about": "About",
+    "action": "Action",
+    "map": "Map",
+    "stories": "Stories",
+    "announcements": "News",
+    "schemes": "Schemes",
+    "gallery": "Gallery",
+    "faq": "FAQ",
+    "contact": "Contact",
+    "signIn": "Sign in",
+    "raiseConcern": "Raise a concern"
+  },
+  "common": {
+    "loading": "Loading…",
+    "save": "Save",
+    "saving": "Saving…",
+    "cancel": "Cancel",
+    "back": "Back",
+    "next": "Next",
+    "submit": "Submit",
+    "close": "Close",
+    "search": "Search",
+    "none": "—",
+    "language": "Language",
+    "signOut": "Sign out",
+    "tryAgain": "Try again"
+  },
+  "language": {
+    "label": "Preferred language",
+    "hint": "The site and your notifications use this language.",
+    "saved": "Language updated."
+  },
+  "shell": {
+    "pressShortcut": "Press <kbd>⌘K</kbd>",
+    "lightMode": "Light mode",
+    "darkMode": "Dark mode",
+    "accountMenu": "Account menu",
+    "commandPlaceholder": "Search or jump to…",
+    "noResults": "No results.",
+    "goTo": "Go to",
+    "actions": "Actions",
+    "toggleTheme": "Toggle theme"
+  },
+  "field": {
+    "navigate": "Navigate"
+  },
+  "publicSite": {
+    "siteNav": "Site",
+    "footerNav": "Footer",
+    "tagline": "Citizen voice · Representative action · Visible outcome",
+    "track": "Track",
+    "trackConcern": "Track a concern"
+  },
+  "settings": {
+    "title": "Settings",
+    "subtitle": "How we reach you when something changes."
+  }
+}

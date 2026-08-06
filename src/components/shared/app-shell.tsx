@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useTheme } from "next-themes";
 import { LogOut, MoonStar, Sun } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -35,6 +36,7 @@ export function AppShell({
   unreadCount: number;
   children: React.ReactNode;
 }) {
+  const t = useTranslations("shell");
   const items = NAV_BY_SECTION[section];
   const pathname = usePathname();
 
@@ -61,7 +63,11 @@ export function AppShell({
           </Link>
           <div className="ml-auto flex items-center gap-2">
             <span className="hidden text-xs text-muted-foreground sm:inline">
-              Press <kbd className="rounded border px-1 font-mono">⌘K</kbd>
+              {t.rich("pressShortcut", {
+                kbd: (chunks) => (
+                  <kbd className="rounded border px-1 font-mono">{chunks}</kbd>
+                ),
+              })}
             </span>
             <NotificationBell initialUnread={unreadCount} />
             <UserMenu user={user} />
@@ -82,7 +88,7 @@ export function AppShell({
             )}
           >
             <item.icon className="size-5" />
-            {item.label}
+            <NavLabel item={item} />
           </Link>
         ))}
       </nav>
@@ -90,6 +96,11 @@ export function AppShell({
       <CommandPalette items={items} />
     </div>
   );
+}
+
+function NavLabel({ item }: { item: (typeof NAV_BY_SECTION)[Section][number] }) {
+  const t = useTranslations("nav");
+  return <>{t(item.labelKey)}</>;
 }
 
 function NavLink({
@@ -109,12 +120,13 @@ function NavLink({
       )}
     >
       <item.icon className="size-4" />
-      {item.label}
+      <NavLabel item={item} />
     </Link>
   );
 }
 
 function ThemeToggle() {
+  const t = useTranslations("shell");
   const { resolvedTheme, setTheme } = useTheme();
   return (
     <Button
@@ -124,17 +136,19 @@ function ThemeToggle() {
       onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
     >
       {resolvedTheme === "dark" ? <Sun className="size-4" /> : <MoonStar className="size-4" />}
-      {resolvedTheme === "dark" ? "Light mode" : "Dark mode"}
+      {resolvedTheme === "dark" ? t("lightMode") : t("darkMode")}
     </Button>
   );
 }
 
 function UserMenu({ user }: { user: ShellUser }) {
+  const t = useTranslations("shell");
+  const common = useTranslations("common");
   const router = useRouter();
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="rounded-full" aria-label="Account menu">
+        <Button variant="ghost" size="icon" className="rounded-full" aria-label={t("accountMenu")}>
           <Avatar className="size-8">
             {user.image ? <AvatarImage src={user.image} alt="" /> : null}
             <AvatarFallback>{user.name.charAt(0).toUpperCase()}</AvatarFallback>
@@ -154,7 +168,7 @@ function UserMenu({ user }: { user: ShellUser }) {
           }}
         >
           <LogOut />
-          Sign out
+          {common("signOut")}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Bricolage_Grotesque, Inter } from "next/font/google";
+import { NextIntlClientProvider } from "next-intl";
+import { getLocale } from "next-intl/server";
 import { Toaster } from "@/components/ui/sonner";
 import { Providers } from "./providers";
 import "./globals.css";
@@ -12,18 +14,22 @@ export const metadata: Metadata = {
   description: "Raise civic issues, track them, and see what gets fixed.",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  const locale = await getLocale();
+
   return (
     <html
-      lang="en"
+      lang={locale}
       suppressHydrationWarning
       className={`${inter.variable} ${bricolage.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col">
-        <Providers>
-          {children}
-          <Toaster position="bottom-right" />
-        </Providers>
+        <NextIntlClientProvider>
+          <Providers>
+            {children}
+            <Toaster position="bottom-right" />
+          </Providers>
+        </NextIntlClientProvider>
       </body>
     </html>
   );

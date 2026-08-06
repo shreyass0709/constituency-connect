@@ -12,29 +12,30 @@ import {
 } from "lucide-react";
 import type { Section } from "@/lib/auth/permissions";
 
-export type NavItem = { href: string; label: string; icon: LucideIcon };
+/** `labelKey` indexes the `nav` namespace in src/i18n — never a literal string. */
+export type NavItem = { href: string; labelKey: string; icon: LucideIcon };
 
 // Sidebar/bottom-nav contents per role-scoped section. Each phase appends its routes
 // here — a link only exists once the page it points at does.
 export const NAV_BY_SECTION: Record<Section, NavItem[]> = {
   "/dashboard": [
-    { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-    { href: "/dashboard/raise", label: "Raise", icon: MessageSquarePlus },
-    { href: "/dashboard/complaints", label: "Concerns", icon: ClipboardList },
-    { href: "/dashboard/engage", label: "Take part", icon: HandHeart },
-    { href: "/dashboard/chat", label: "Messages", icon: MessageSquare },
-    { href: "/dashboard/settings", label: "Settings", icon: Settings },
+    { href: "/dashboard", labelKey: "dashboard", icon: LayoutDashboard },
+    { href: "/dashboard/raise", labelKey: "raise", icon: MessageSquarePlus },
+    { href: "/dashboard/complaints", labelKey: "concerns", icon: ClipboardList },
+    { href: "/dashboard/engage", labelKey: "engage", icon: HandHeart },
+    { href: "/dashboard/chat", labelKey: "messages", icon: MessageSquare },
+    { href: "/dashboard/settings", labelKey: "settings", icon: Settings },
   ],
   "/office": [
-    { href: "/office", label: "Dashboard", icon: LayoutDashboard },
-    { href: "/office/triage", label: "Triage", icon: Inbox },
-    { href: "/office/complaints", label: "Complaints", icon: ClipboardList },
-    { href: "/office/engagement", label: "Engagement", icon: HandHeart },
-    { href: "/office/chat", label: "Messages", icon: MessageSquare },
-    { href: "/office/analytics", label: "Analytics", icon: ChartColumn },
-    { href: "/office/reports", label: "Reports", icon: FileText },
-    { href: "/office/content", label: "Content", icon: FileText },
+    { href: "/office", labelKey: "dashboard", icon: LayoutDashboard },
+    { href: "/office/triage", labelKey: "triage", icon: Inbox },
+    { href: "/office/complaints", labelKey: "complaints", icon: ClipboardList },
+    { href: "/office/engagement", labelKey: "engagement", icon: HandHeart },
+    { href: "/office/chat", labelKey: "messages", icon: MessageSquare },
+    { href: "/office/analytics", labelKey: "analytics", icon: ChartColumn },
+    { href: "/office/reports", labelKey: "reports", icon: FileText },
+    { href: "/office/content", labelKey: "content", icon: FileText },
   ],
-  "/department": [{ href: "/department", label: "Queue", icon: Inbox }],
-  "/field": [{ href: "/field", label: "My tasks", icon: ClipboardList }],
+  "/department": [{ href: "/department", labelKey: "queue", icon: Inbox }],
+  "/field": [{ href: "/field", labelKey: "myTasks", icon: ClipboardList }],
 };

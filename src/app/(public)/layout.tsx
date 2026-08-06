@@ -1,10 +1,15 @@
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 import { Button } from "@/components/ui/button";
+import { LanguageSwitcher } from "@/features/account/language-switcher";
 import { PUBLIC_NAV } from "@/constants/public-nav";
 import { aiEnabled } from "@/lib/ai/gemini";
 import { ChatWidget } from "@/features/chat/chat-widget";
 
-export default function PublicLayout({ children }: LayoutProps<"/">) {
+export default async function PublicLayout({ children }: LayoutProps<"/">) {
+  const t = await getTranslations("publicNav");
+  const site = await getTranslations("publicSite");
+
   return (
     <>
       <header className="sticky top-0 z-20 border-b bg-background/70 backdrop-blur">
@@ -13,31 +18,32 @@ export default function PublicLayout({ children }: LayoutProps<"/">) {
             Constituency<span className="text-primary"> Connect</span>
           </Link>
 
-          <nav aria-label="Site" className="hidden flex-1 items-center gap-1 lg:flex">
+          <nav aria-label={site("siteNav")} className="hidden flex-1 items-center gap-1 lg:flex">
             {PUBLIC_NAV.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
                 className="rounded-lg px-3 py-1.5 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
               >
-                {item.label}
+                {t(item.labelKey)}
               </Link>
             ))}
           </nav>
 
           <div className="ml-auto flex items-center gap-2 lg:ml-0">
+            <LanguageSwitcher className="hidden w-32 sm:block" />
             <Button asChild size="sm" variant="ghost">
-              <Link href="/track">Track</Link>
+              <Link href="/track">{site("track")}</Link>
             </Button>
             <Button asChild size="sm">
-              <Link href="/dashboard/raise">Raise a concern</Link>
+              <Link href="/dashboard/raise">{t("raiseConcern")}</Link>
             </Button>
           </div>
         </div>
 
         {/* The same links, scrollable, for phones — no hamburger to build or maintain. */}
         <nav
-          aria-label="Site"
+          aria-label={site("siteNav")}
           className="flex gap-1 overflow-x-auto border-t px-4 py-2 text-sm lg:hidden"
         >
           {PUBLIC_NAV.map((item) => (
@@ -46,7 +52,7 @@ export default function PublicLayout({ children }: LayoutProps<"/">) {
               href={item.href}
               className="shrink-0 rounded-lg px-3 py-1 text-muted-foreground"
             >
-              {item.label}
+              {t(item.labelKey)}
             </Link>
           ))}
         </nav>
@@ -56,19 +62,19 @@ export default function PublicLayout({ children }: LayoutProps<"/">) {
 
       <footer className="border-t">
         <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-10 text-sm text-muted-foreground sm:flex-row sm:items-center">
-          <p>Citizen voice · Representative action · Visible outcome</p>
-          <nav aria-label="Footer" className="flex flex-wrap gap-4 sm:ml-auto">
+          <p>{site("tagline")}</p>
+          <nav aria-label={site("footerNav")} className="flex flex-wrap gap-4 sm:ml-auto">
             <Link href="/track" className="hover:text-foreground">
-              Track a concern
+              {site("trackConcern")}
             </Link>
             <Link href="/faq" className="hover:text-foreground">
-              FAQ
+              {t("faq")}
             </Link>
             <Link href="/contact" className="hover:text-foreground">
-              Contact
+              {t("contact")}
             </Link>
             <Link href="/login" className="hover:text-foreground">
-              Sign in
+              {t("signIn")}
             </Link>
           </nav>
         </div>

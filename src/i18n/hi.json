@@ -1,0 +1,224 @@
+{
+  "status": {
+    "DRAFT": "मसौदा",
+    "SUBMITTED": "भेजा गया",
+    "ACKNOWLEDGED": "प्राप्ति दर्ज",
+    "ASSIGNED": "सौंपा गया",
+    "DEPT_REVIEW": "विभागीय समीक्षा",
+    "FIELD_VERIFICATION": "मौके पर जाँच",
+    "IN_PROGRESS": "काम जारी है",
+    "COMPLETED": "पूरा — पुष्टि करें",
+    "CLOSED": "बंद",
+    "REJECTED": "अस्वीकृत",
+    "REOPENED": "फिर से खोला गया"
+  },
+  "statusHint": {
+    "DRAFT": "अभी भेजा नहीं गया — पूरा करके भेजें।",
+    "SUBMITTED": "मिल गया। कार्यालय जल्द ही इसे देखेगा।",
+    "ACKNOWLEDGED": "कार्यालय ने आपकी शिकायत पढ़ ली है।",
+    "ASSIGNED": "एक विभाग और अधिकारी को सौंप दिया गया है।",
+    "DEPT_REVIEW": "विभाग विवरण की समीक्षा कर रहा है।",
+    "FIELD_VERIFICATION": "अधिकारी मौके पर जाँच कर रहे हैं।",
+    "IN_PROGRESS": "काम शुरू हो गया है।",
+    "COMPLETED": "पूरा बताया गया है। 7 दिन के भीतर पुष्टि करें या फिर से खोलें।",
+    "CLOSED": "समाधान हुआ और बंद कर दिया गया।",
+    "REJECTED": "इसे आगे नहीं बढ़ाया जा सका — नीचे कारण देखें।",
+    "REOPENED": "आपने इसे फिर से खोला है। कार्यालय दोबारा देख रहा है।"
+  },
+  "priority": {
+    "LOW": "कम",
+    "MEDIUM": "मध्यम",
+    "HIGH": "अधिक",
+    "URGENT": "अत्यावश्यक"
+  },
+  "category": {
+    "ROAD": "सड़क",
+    "DRAINAGE": "नाली",
+    "STREET_LIGHT": "स्ट्रीट लाइट",
+    "WATER": "पानी",
+    "ELECTRICITY": "बिजली",
+    "GARBAGE": "कचरा",
+    "SCHOOL": "स्कूल",
+    "HOSPITAL": "स्वास्थ्य",
+    "PENSION": "पेंशन",
+    "HOUSING": "आवास",
+    "PUBLIC_SAFETY": "जन सुरक्षा",
+    "TRANSPORT": "परिवहन",
+    "AGRICULTURE": "कृषि",
+    "ENVIRONMENT": "पर्यावरण",
+    "OTHER": "कुछ और"
+  },
+  "complaintDetail": {
+    "received": "आपकी शिकायत हमें मिल गई है",
+    "receivedHint": "यह कोड संभालकर रखें। कार्यालय इसकी समीक्षा करेगा, विभाग सौंपेगा, और हर चरण पर आपको सूचना मिलेगी — बार-बार पूछने की ज़रूरत नहीं।",
+    "private": "निजी",
+    "notSet": "तय नहीं",
+    "notRouted": "अभी विभाग तय नहीं",
+    "notAssigned": "अभी अधिकारी तय नहीं",
+    "noPhone": "फ़ोन नहीं",
+    "daysOverdue": "{days} दिन की देरी",
+    "daysLeft": "{days} दिन बाकी ({date} तक)",
+    "whatWasReported": "क्या बताया गया",
+    "openOnMap": "नक्शे पर जगह देखें",
+    "reason": "कारण:",
+    "followInstead": "अपडेट के लिए <code></code> देखें।",
+    "attachments": "संलग्नक",
+    "voiceNote": "आवाज़ रिकॉर्डिंग",
+    "video": "वीडियो",
+    "history": "इतिहास",
+    "field": {
+      "category": "श्रेणी",
+      "ward": "वार्ड",
+      "department": "विभाग",
+      "officer": "अधिकारी",
+      "raised": "दर्ज किया",
+      "estimated": "अनुमानित पूर्णता",
+      "target": "समाधान की समय-सीमा",
+      "raisedBy": "किसने दर्ज किया"
+    }
+  },
+  "complaintList": {
+    "select": "{code} चुनें",
+    "overdue": "समय-सीमा पार",
+    "officer": "अधिकारी: {name}",
+    "raised": "{date} को दर्ज",
+    "daysOverdue": "{days} दिन की देरी",
+    "daysLeft": "{days} दिन बाकी"
+  },
+  "raise": {
+    "progress": "प्रगति",
+    "step": {
+      "what": "क्या",
+      "where": "कहाँ",
+      "review": "जाँच"
+    },
+    "draftSaved": "मसौदा सहेजा गया",
+    "whatAbout": "यह किस बारे में है?",
+    "titleLabel": "एक छोटा शीर्षक दें",
+    "titlePlaceholder": "गणेश मंदिर के पास गड्ढा",
+    "descriptionLabel": "क्या हो रहा है?",
+    "descriptionPlaceholder": "समस्या बताइए — कब से है और किसे परेशानी हो रही है।",
+    "mediaLabel": "फ़ोटो, वीडियो या आवाज़ रिकॉर्डिंग",
+    "mediaLater": "आगे बढ़ने के बाद आप फ़ोटो और आवाज़ रिकॉर्डिंग जोड़ सकते हैं।",
+    "transcribing": "आपकी बात लिखी जा रही है…",
+    "transcribed": "आपकी बात जोड़ दी गई — कोई शब्द गलत हो तो सुधार लें।",
+    "whereLabel": "यह कहाँ है?",
+    "pinned": "{latitude}, {longitude} पर चिह्नित।",
+    "noPinWard": "जगह चिह्नित न होने पर इसे आपके वार्ड {ward} में दर्ज किया जाएगा।",
+    "noPin": "अपनी जगह साझा करें या बताएं कि यह कहाँ है।",
+    "useLocation": "मेरी मौजूदा जगह लें",
+    "locationCaptured": "जगह दर्ज हो गई।",
+    "addressLabel": "पता या इलाका",
+    "addressPlaceholder": "मार्केट रोड, बस स्टॉप के पास",
+    "landmarkLabel": "पास की पहचान (वैकल्पिक)",
+    "landmarkPlaceholder": "मंदिर के सामने",
+    "readyToSend": "भेजने के लिए तैयार",
+    "review": {
+      "about": "विषय",
+      "title": "शीर्षक",
+      "details": "विवरण",
+      "where": "जगह"
+    },
+    "afterSend": "भेजते ही आपको एक ट्रैकिंग कोड मिलेगा, और उसके बाद हर चरण पर सूचना मिलेगी।",
+    "back": "पीछे",
+    "continue": "आगे बढ़ें",
+    "send": "यह शिकायत भेजें",
+    "sent": "मिल गई — {code}",
+    "errors": {
+      "category": "चुनें कि यह किस बारे में है।",
+      "title": "एक छोटा शीर्षक दें।",
+      "description": "थोड़ा और बताइए।",
+      "noGeolocation": "यह डिवाइस जगह साझा नहीं कर सकता।",
+      "locationFailed": "आपकी जगह नहीं मिल पाई। पता टाइप कर दीजिए।"
+    }
+  },
+  "timeline": {
+    "empty": "अभी तक कुछ नहीं हुआ है।",
+    "internal": "आंतरिक",
+    "by": "{name} द्वारा",
+    "type": {
+      "STATUS_CHANGE": "स्थिति बदली",
+      "ASSIGNMENT": "सौंपा गया",
+      "COMMENT": "टिप्पणी जोड़ी गई",
+      "MEDIA_ADDED": "फ़ोटो या रिकॉर्डिंग जोड़ी गई",
+      "AI_ACTION": "स्वतः वर्गीकरण",
+      "FEEDBACK": "प्रतिक्रिया",
+      "ESCALATION": "आगे बढ़ाया गया",
+      "MERGE": "दूसरी शिकायत के साथ जोड़ा गया"
+    }
+  },
+  "nav": {
+    "dashboard": "डैशबोर्ड",
+    "raise": "शिकायत दर्ज करें",
+    "concerns": "मेरी शिकायतें",
+    "engage": "भागीदारी",
+    "messages": "संदेश",
+    "settings": "सेटिंग्स",
+    "myTasks": "मेरे काम",
+    "triage": "छँटाई",
+    "complaints": "शिकायतें",
+    "engagement": "जनभागीदारी",
+    "analytics": "विश्लेषण",
+    "reports": "रिपोर्ट",
+    "content": "सामग्री",
+    "queue": "कतार"
+  },
+  "publicNav": {
+    "about": "परिचय",
+    "action": "कामकाज",
+    "map": "नक्शा",
+    "stories": "कहानियाँ",
+    "announcements": "सूचनाएँ",
+    "schemes": "योजनाएँ",
+    "gallery": "गैलरी",
+    "faq": "सामान्य प्रश्न",
+    "contact": "संपर्क",
+    "signIn": "साइन इन",
+    "raiseConcern": "शिकायत दर्ज करें"
+  },
+  "common": {
+    "loading": "लोड हो रहा है…",
+    "save": "सहेजें",
+    "saving": "सहेजा जा रहा है…",
+    "cancel": "रद्द करें",
+    "back": "पीछे",
+    "next": "आगे",
+    "submit": "भेजें",
+    "close": "बंद करें",
+    "search": "खोजें",
+    "none": "—",
+    "language": "भाषा",
+    "signOut": "साइन आउट",
+    "tryAgain": "फिर से कोशिश करें"
+  },
+  "language": {
+    "label": "पसंदीदा भाषा",
+    "hint": "साइट और आपकी सूचनाएँ इसी भाषा में दिखेंगी।",
+    "saved": "भाषा बदल दी गई।"
+  },
+  "shell": {
+    "pressShortcut": "<kbd>⌘K</kbd> दबाएँ",
+    "lightMode": "उजला रूप",
+    "darkMode": "गहरा रूप",
+    "accountMenu": "खाता मेन्यू",
+    "commandPlaceholder": "खोजें या सीधे जाएँ…",
+    "noResults": "कुछ नहीं मिला।",
+    "goTo": "यहाँ जाएँ",
+    "actions": "कार्य",
+    "toggleTheme": "रूप बदलें"
+  },
+  "field": {
+    "navigate": "रास्ता देखें"
+  },
+  "publicSite": {
+    "siteNav": "साइट",
+    "footerNav": "फुटर",
+    "tagline": "नागरिक की आवाज़ · जनप्रतिनिधि की कार्रवाई · दिखता नतीजा",
+    "track": "स्थिति देखें",
+    "trackConcern": "शिकायत की स्थिति देखें"
+  },
+  "settings": {
+    "title": "सेटिंग्स",
+    "subtitle": "कुछ बदलने पर हम आपसे कैसे संपर्क करें।"
+  }
+}

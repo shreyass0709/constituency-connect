@@ -1,8 +1,8 @@
 import Image from "next/image";
 import { CircleCheckBig, MapPin, Play, Star } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { PriorityBadge, StatusChip } from "@/components/shared/status-chip";
 import { Timeline } from "@/components/shared/timeline";
-import { CATEGORY_LABEL, STATUS_HINT } from "@/constants/status";
 import { can } from "@/lib/auth/permissions";
 import type { CurrentUser } from "@/lib/auth/require-user";
 import { cn, formatDate } from "@/lib/utils";
@@ -26,6 +26,9 @@ export function ComplaintDetail({
   officers: { id: string; name: string; departmentId: string | null }[];
   justSubmitted?: boolean;
 }) {
+  const t = useTranslations("complaintDetail");
+  const hint = useTranslations("statusHint");
+  const category = useTranslations("category");
   const isOwner = complaint.citizenId === viewer.id;
   const canTriage = can(viewer.role, "complaint.triage");
   const allowed = nextStatuses({ role: viewer.role, isOwner }, complaint.status);
@@ -36,12 +39,9 @@ export function ComplaintDetail({
       {justSubmitted ? (
         <div className="flex flex-col items-center gap-2 rounded-2xl border border-primary/30 bg-primary/5 p-6 text-center">
           <CircleCheckBig className="size-8 text-primary" aria-hidden />
-          <h2 className="text-lg font-semibold">We have your concern</h2>
+          <h2 className="text-lg font-semibold">{t("received")}</h2>
           <CopyCode code={complaint.code} />
-          <p className="max-w-md text-sm text-muted-foreground">
-            Keep this code. The office reviews it, assigns a department, and you get a
-            notification at every step — no need to follow up.
-          </p>
+          <p className="max-w-md text-sm text-muted-foreground">{t("receivedHint")}</p>
         </div>
       ) : null}
 
@@ -51,43 +51,46 @@ export function ComplaintDetail({
           <StatusChip status={complaint.status} />
           <PriorityBadge priority={complaint.priority} />
           {complaint.isPrivate ? (
-            <span className="rounded-full bg-muted px-2.5 py-0.5 text-xs">Private</span>
+            <span className="rounded-full bg-muted px-2.5 py-0.5 text-xs">{t("private")}</span>
           ) : null}
         </div>
         <h1 className="font-heading text-2xl font-semibold tracking-tight">{complaint.title}</h1>
-        <p className="text-muted-foreground">{STATUS_HINT[complaint.status]}</p>
+        <p className="text-muted-foreground">{hint(complaint.status)}</p>
       </header>
 
       <dl className="grid gap-4 rounded-2xl border p-4 text-sm sm:grid-cols-2">
-        <Field label="Category" value={CATEGORY_LABEL[complaint.category]} />
-        <Field label="Ward" value={complaint.ward?.name ?? "Not set"} />
-        <Field label="Department" value={complaint.department?.name ?? "Not routed yet"} />
-        <Field label="Officer" value={complaint.assignedTo?.name ?? "Not assigned yet"} />
-        <Field label="Raised" value={formatDate(complaint.createdAt)} />
+        <Field label={t("field.category")} value={category(complaint.category)} />
+        <Field label={t("field.ward")} value={complaint.ward?.name ?? t("notSet")} />
+        <Field label={t("field.department")} value={complaint.department?.name ?? t("notRouted")} />
+        <Field label={t("field.officer")} value={complaint.assignedTo?.name ?? t("notAssigned")} />
+        <Field label={t("field.raised")} value={formatDate(complaint.createdAt)} />
         <Field
-          label="Estimated completion"
+          label={t("field.estimated")}
           value={complaint.estimatedCompletion ? formatDate(complaint.estimatedCompletion) : "—"}
         />
         {complaint.dueAt ? (
           <Field
-            label="Resolution target"
+            label={t("field.target")}
             value={
               daysLeft === null
                 ? formatDate(complaint.dueAt)
                 : overdue
-                  ? `${Math.abs(daysLeft)} days overdue`
-                  : `${daysLeft} days left (by ${formatDate(complaint.dueAt)})`
+                  ? t("daysOverdue", { days: Math.abs(daysLeft) })
+                  : t("daysLeft", { days: daysLeft, date: formatDate(complaint.dueAt) })
             }
             className={cn(overdue && "text-red-600 dark:text-red-300")}
           />
         ) : null}
         {canTriage ? (
-          <Field label="Raised by" value={`${complaint.citizen.name} · ${complaint.citizen.phone ?? "no phone"}`} />
+          <Field
+            label={t("field.raisedBy")}
+            value={`${complaint.citizen.name} · ${complaint.citizen.phone ?? t("noPhone")}`}
+          />
         ) : null}
       </dl>
 
       <section className="flex flex-col gap-2">
-        <h2 className="text-sm font-medium text-muted-foreground">What was reported</h2>
+        <h2 className="text-sm font-medium text-muted-foreground">{t("whatWasReported")}</h2>
         <p className="whitespace-pre-wrap">{complaint.description}</p>
         <TranslateButton
           complaintId={complaint.id}
@@ -107,20 +110,21 @@ export function ComplaintDetail({
             target="_blank"
             rel="noreferrer"
           >
-            Open the location on a map
+            {t("openOnMap")}
           </a>
         ) : null}
       </section>
 
       {complaint.rejectionReason ? (
         <p className="rounded-2xl border border-red-500/30 bg-red-500/5 p-4 text-sm">
-          <strong className="font-medium">Reason: </strong>
+          <strong className="font-medium">{t("reason")} </strong>
           {complaint.rejectionReason}
           {complaint.duplicateOf ? (
             <>
               {" "}
-              Follow{" "}
-              <span className="font-mono">{complaint.duplicateOf.code}</span> for updates.
+              {t.rich("followInstead", {
+                code: () => <span className="font-mono">{complaint.duplicateOf!.code}</span>,
+              })}
             </>
           ) : null}
         </p>
@@ -128,7 +132,7 @@ export function ComplaintDetail({
 
       {complaint.media.length > 0 ? (
         <section className="flex flex-col gap-2">
-          <h2 className="text-sm font-medium text-muted-foreground">Attachments</h2>
+          <h2 className="text-sm font-medium text-muted-foreground">{t("attachments")}</h2>
           <ul className="flex flex-wrap gap-3">
             {complaint.media.map((item) => (
               <li key={item.id}>
@@ -150,7 +154,7 @@ export function ComplaintDetail({
                     className="flex size-32 flex-col items-center justify-center gap-1 rounded-xl border text-xs text-muted-foreground"
                   >
                     <Play className="size-5" aria-hidden />
-                    {item.kind === "AUDIO" ? "Voice note" : "Video"}
+                    {item.kind === "AUDIO" ? t("voiceNote") : t("video")}
                   </a>
                 )}
               </li>
@@ -184,7 +188,7 @@ export function ComplaintDetail({
       />
 
       <section className="flex flex-col gap-4">
-        <h2 className="font-heading text-lg font-semibold">History</h2>
+        <h2 className="font-heading text-lg font-semibold">{t("history")}</h2>
         <Timeline entries={complaint.timeline} />
       </section>
     </div>
