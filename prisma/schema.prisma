@@ -577,6 +577,29 @@ model ActionStat {
   sortOrder    Int     @default(0)
 }
 
+// Generated narratives (monthly summary, weekly hotspots). Stored rather than computed
+// on demand: they cost an AI call, and the office reviews them before acting on them.
+
+enum ReportKind {
+  MONTHLY_SUMMARY
+  WEEKLY_HOTSPOTS
+}
+
+model Report {
+  id          String     @id @default(cuid())
+  kind        ReportKind
+  periodStart DateTime
+  periodEnd   DateTime
+  title       String
+  body        String
+  meta        Json? // the SQL aggregates the narrative was written from
+  aiGenerated Boolean    @default(false)
+  createdAt   DateTime   @default(now())
+
+  @@unique([kind, periodStart])
+  @@index([kind, createdAt])
+}
+
 model DocumentFile {
   id        String   @id @default(cuid())
   title     String

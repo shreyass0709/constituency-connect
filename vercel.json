@@ -3,6 +3,14 @@
     {
       "path": "/api/v1/cron/nightly",
       "schedule": "30 18 * * *"
+    },
+    {
+      "path": "/api/v1/cron/weekly",
+      "schedule": "0 2 * * 1"
+    },
+    {
+      "path": "/api/v1/cron/monthly",
+      "schedule": "0 3 1 * *"
     }
   ]
 }

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
+import { cronAuthorized } from "@/lib/cron-auth";
 import { db } from "@/lib/db";
-import { env } from "@/lib/env";
 import { notifyComplaint, notifyUsers } from "@/lib/notify";
 import { addTimelineEntry, transitionComplaint } from "@/features/complaints/lib/transition";
 import { recomputeActionStats } from "@/features/public-site/lib/action-stats";
@@ -9,14 +9,6 @@ import { recomputeActionStats } from "@/features/public-site/lib/action-stats";
 const SLA_BREACH_NOTE = "Past its resolution target";
 const CONFIRM_WINDOW_DAYS = 7;
 
-function authorized(request: Request): boolean {
-  if (!env.CRON_SECRET) return false; // no secret configured ⇒ nobody may run it
-  const header = request.headers.get("authorization");
-  return (
-    header === `Bearer ${env.CRON_SECRET}` || // how Vercel Cron sends it
-    request.headers.get("x-cron-secret") === env.CRON_SECRET // how a human curls it
-  );
-}
 
 /**
  * Nightly housekeeping (docs/02-architecture.md §7):
@@ -24,7 +16,7 @@ function authorized(request: Request): boolean {
  *  2. flag complaints that have blown their SLA, once each.
  */
 export async function GET(request: Request) {
-  if (!authorized(request)) {
+  if (!cronAuthorized(request)) {
     return NextResponse.json(
       { error: { code: "FORBIDDEN", message: "Not for you." } },
       { status: 403 },
