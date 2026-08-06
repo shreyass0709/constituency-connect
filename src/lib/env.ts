@@ -4,27 +4,44 @@ import { z } from "zod";
 // Server-side only: Next never exposes non-NEXT_PUBLIC_ vars to the client bundle, so
 // an accidental client import fails validation loudly instead of leaking anything.
 // Vars get added here as each feature lands (docs/02-architecture.md §7).
+
+/**
+ * An unset variable and one set to the empty string mean the same thing to an operator —
+ * "I don't have this" — so they must mean the same thing here. Without this, a blank
+ * `GEMINI_API_KEY=` in a dashboard takes the whole app down at boot instead of quietly
+ * disabling one optional feature.
+ */
+const optional = (inner: z.ZodType<string>) =>
+  z.preprocess((value) => (value === "" ? undefined : value), inner.optional());
+
 const schema = z.object({
   DATABASE_URL: z.string().min(1),
   BETTER_AUTH_SECRET: z.string().min(32),
   BETTER_AUTH_URL: z.url(),
   SMS_PROVIDER: z.enum(["console", "msg91"]).default("console"),
   // Optional: without them the app runs fine, photo/voice attachments just stay off.
-  CLOUDINARY_CLOUD_NAME: z.string().min(1).optional(),
-  CLOUDINARY_API_KEY: z.string().min(1).optional(),
-  CLOUDINARY_API_SECRET: z.string().min(1).optional(),
+  CLOUDINARY_CLOUD_NAME: optional(z.string().min(1)),
+  CLOUDINARY_API_KEY: optional(z.string().min(1)),
+  CLOUDINARY_API_SECRET: optional(z.string().min(1)),
   /** Shared secret the cron routes require in `x-cron-secret`. */
-  CRON_SECRET: z.string().min(16).optional(),
+  CRON_SECRET: optional(z.string().min(16)),
 
   // ── Notification channels (all optional; a missing channel is simply skipped) ──
-  RESEND_API_KEY: z.string().min(1).optional(),
-  EMAIL_FROM: z.string().min(1).optional(),
+  RESEND_API_KEY: optional(z.string().min(1)),
+  EMAIL_FROM: optional(z.string().min(1)),
   /** Public origin used to build absolute links in emails and push payloads. */
-  APP_URL: z.url().optional(),
+  APP_URL: optional(z.url()),
   /** FCM HTTP v1 service account — the three fields we actually need from its JSON. */
-  FCM_PROJECT_ID: z.string().min(1).optional(),
-  FCM_CLIENT_EMAIL: z.string().min(1).optional(),
-  FCM_PRIVATE_KEY: z.string().min(1).optional(),
+  FCM_PROJECT_ID: optional(z.string().min(1)),
+  FCM_CLIENT_EMAIL: optional(z.string().min(1)),
+  FCM_PRIVATE_KEY: optional(z.string().min(1)),
+
+  // ── AI (optional; every AI feature has a deterministic fallback) ──
+  GEMINI_API_KEY: optional(z.string().min(1)),
+  /** Knob, not a constant: model names move faster than releases do. */
+  GEMINI_MODEL: z.string().min(1).default("gemini-2.5-flash"),
+  // AI_ENABLED is deliberately NOT parsed here — `aiEnabled()` reads it live so the kill
+  // switch can be flipped inside a test or a script without re-importing the world.
 });
 
 const parsed = schema.safeParse(process.env);

@@ -15,10 +15,13 @@ export function MediaUploader({
   complaintId,
   initial,
   disabled,
+  onAudioAttached,
 }: {
   complaintId: string;
   initial: AttachedMedia[];
   disabled?: boolean;
+  /** Lets the raise wizard turn a fresh voice note into text. */
+  onAudioAttached?: (mediaId: string) => void;
 }) {
   const [items, setItems] = useState<AttachedMedia[]>(initial);
   const [busy, setBusy] = useState(false);
@@ -31,6 +34,7 @@ export function MediaUploader({
       const result = await attachMedia({ complaintId, kind, ...uploaded });
       if (!result.ok) throw new Error(result.error);
       setItems((current) => [...current, result.data]);
+      if (kind === "AUDIO") onAudioAttached?.(result.data.id);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Upload failed.");
     } finally {

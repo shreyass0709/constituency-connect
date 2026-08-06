@@ -14,12 +14,15 @@ export function ComplaintList({
   basePath,
   selected,
   onToggle,
+  renderExtra,
 }: {
   complaints: ComplaintCard[];
   basePath: string;
   /** Present only when a client parent (the triage board) is running bulk selection. */
   selected?: Set<string>;
   onToggle?: (id: string) => void;
+  /** Staff-only row extras — the AI suggestion strip. Never rendered for citizens. */
+  renderExtra?: (complaint: ComplaintCard) => React.ReactNode;
 }) {
   return (
     <ul className="flex flex-col gap-2">
@@ -70,6 +73,7 @@ export function ComplaintList({
                 </p>
               </Link>
             </div>
+            {renderExtra ? <div className="px-4 pb-4">{renderExtra(complaint)}</div> : null}
           </li>
         );
       })}

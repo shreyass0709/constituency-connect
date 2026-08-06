@@ -3,13 +3,18 @@ import { Inbox } from "lucide-react";
 import { EmptyState } from "@/components/shared/empty-state";
 import { requireUser } from "@/lib/auth/require-user";
 import { db } from "@/lib/db";
-import { assignmentOptions, listComplaints } from "@/features/complaints/queries";
+import {
+  assignmentOptions,
+  listComplaints,
+  UNCLASSIFIED_WHERE,
+} from "@/features/complaints/queries";
 import { TriageBoard } from "@/features/triage/triage-board";
 
 export const metadata = { title: "Triage" };
 
 const TABS = {
   new: { label: "New", filters: { status: "SUBMITTED" as const } },
+  unclassified: { label: "Unclassified", filters: { unclassified: true } },
   acknowledged: { label: "Acknowledged", filters: { status: "ACKNOWLEDGED" as const } },
   overdue: { label: "Past SLA", filters: { overdue: true } },
   escalated: { label: "Escalated", filters: { escalated: true } },
@@ -38,11 +43,13 @@ export default async function TriagePage({ searchParams }: PageProps<"/office/tr
           status: { notIn: ["DRAFT", "CLOSED", "REJECTED"] },
         },
       }),
+      db.complaint.count({ where: UNCLASSIFIED_WHERE }),
     ]),
   ]);
-  const [newCount, ackCount, overdueCount, escalatedCount] = counts;
+  const [newCount, ackCount, overdueCount, escalatedCount, unclassifiedCount] = counts;
   const badges: Record<keyof typeof TABS, number> = {
     new: newCount,
+    unclassified: unclassifiedCount,
     acknowledged: ackCount,
     overdue: overdueCount,
     escalated: escalatedCount,

@@ -8,6 +8,7 @@ import type { CurrentUser } from "@/lib/auth/require-user";
 import { cn, formatDate } from "@/lib/utils";
 import { ComplaintActions } from "./complaint-actions";
 import { CopyCode } from "./copy-code";
+import { TranslateButton } from "./translate-button";
 import { nextStatuses } from "./lib/workflow";
 import type { ComplaintDetail as ComplaintDetailData } from "./queries";
 
@@ -88,6 +89,11 @@ export function ComplaintDetail({
       <section className="flex flex-col gap-2">
         <h2 className="text-sm font-medium text-muted-foreground">What was reported</h2>
         <p className="whitespace-pre-wrap">{complaint.description}</p>
+        <TranslateButton
+          complaintId={complaint.id}
+          currentLanguage={complaint.language}
+          viewerLanguage={viewer.language}
+        />
         {complaint.address || complaint.landmark ? (
           <p className="flex items-center gap-2 text-sm text-muted-foreground">
             <MapPin className="size-4" aria-hidden />

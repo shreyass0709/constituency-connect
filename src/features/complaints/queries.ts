@@ -1,4 +1,4 @@
-import type { Prisma } from "@/generated/prisma/client";
+import { Prisma } from "@/generated/prisma/client";
 import type { ComplaintCategory, ComplaintStatus } from "@/generated/prisma/enums";
 import { db } from "@/lib/db";
 import type { CurrentUser } from "@/lib/auth/require-user";
@@ -24,6 +24,8 @@ const CARD_SELECT = {
   latitude: true,
   longitude: true,
   address: true,
+  // The triage board reads its one-click suggestions out of here.
+  aiMeta: true,
   ward: { select: { name: true } },
   department: { select: { name: true } },
   assignedTo: { select: { name: true } },
@@ -63,9 +65,23 @@ export type ComplaintFilters = {
   overdue?: boolean;
   /** Someone has raised a hand about it — an ESCALATION entry exists on the timeline. */
   escalated?: boolean;
+  /** The AI never managed to tag it, so a human has to. */
+  unclassified?: boolean;
   q?: string;
   page?: number;
   limit?: number;
+};
+
+/**
+ * "Nobody has looked at this yet, human or machine": either the AI never wrote its
+ * verdict, or it wrote a failure. Exported so the triage badge and the queue agree.
+ */
+export const UNCLASSIFIED_WHERE: Prisma.ComplaintWhereInput = {
+  status: { in: ["SUBMITTED", "ACKNOWLEDGED"] },
+  OR: [
+    { aiMeta: { equals: Prisma.DbNull } },
+    { aiMeta: { path: ["status"], equals: "failed" } },
+  ],
 };
 
 function whereFrom(user: CurrentUser, filters: ComplaintFilters): Prisma.ComplaintWhereInput {
@@ -92,6 +108,7 @@ function whereFrom(user: CurrentUser, filters: ComplaintFilters): Prisma.Complai
             status: { notIn: ["DRAFT", "CLOSED", "REJECTED"] },
           }
         : {},
+      filters.unclassified ? UNCLASSIFIED_WHERE : {},
       q
         ? {
             OR: [
@@ -163,6 +180,7 @@ const DETAIL_SELECT = {
   category: true,
   status: true,
   priority: true,
+  language: true,
   citizenId: true,
   departmentId: true,
   assignedToId: true,

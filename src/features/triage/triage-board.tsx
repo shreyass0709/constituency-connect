@@ -16,6 +16,7 @@ import {
 import { assignComplaints } from "@/features/complaints/actions";
 import { ComplaintList } from "@/features/complaints/complaint-list";
 import type { ComplaintCard } from "@/features/complaints/queries";
+import { AiSuggestion } from "./ai-suggestion";
 
 /**
  * The morning-triage surface (journey J2): tick a run of road complaints, send them all
@@ -93,6 +94,7 @@ export function TriageBoard({
         basePath="/office/complaints"
         selected={selected}
         onToggle={toggle}
+        renderExtra={(complaint) => <AiSuggestion complaint={complaint} />}
       />
 
       {selected.size > 0 ? (

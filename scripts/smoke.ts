@@ -1,6 +1,10 @@
 import "dotenv/config";
 import assert from "node:assert/strict";
 import { db } from "../src/lib/db";
+import { aiEnabled } from "../src/lib/ai/gemini";
+import { runIntake } from "../src/features/complaints/lib/ai-intake";
+import { aiMetaOf } from "../src/features/complaints/lib/ai-meta";
+import { UNCLASSIFIED_WHERE } from "../src/features/complaints/queries";
 import { nextComplaintCode } from "../src/features/complaints/lib/code";
 import { transitionComplaint } from "../src/features/complaints/lib/transition";
 import { canViewComplaint } from "../src/features/complaints/lib/access";
@@ -94,6 +98,20 @@ async function main() {
       "re-submitting is idempotent",
     );
     assert.equal((await statusOf(draft.id)).entries, 1);
+
+    // ── Gate M3, literally: kill the AI and the complaint still lands, unclassified ──
+    process.env.AI_ENABLED = "false";
+    assert.equal(aiEnabled(), false, "the kill switch actually switches it off");
+    await runIntake(draft.id);
+
+    const unclassified = await db.complaint.findFirst({
+      where: { AND: [{ id: draft.id }, UNCLASSIFIED_WHERE] },
+      select: { aiMeta: true, status: true },
+    });
+    assert.ok(unclassified, "an untagged complaint shows up in the Unclassified queue");
+    assert.equal(aiMetaOf(unclassified.aiMeta)?.status, "failed");
+    assert.equal(unclassified.status, "SUBMITTED", "and it is still a live complaint");
+    delete process.env.AI_ENABLED;
 
     // ── J2: the office triages ──
     await transitionComplaint({ complaintId: draft.id, to: "ACKNOWLEDGED", actor: staff });
@@ -190,7 +208,10 @@ async function main() {
       "closed complaints are terminal",
     );
 
-    console.log(`OK — ${code} walked draft → closed through every role, 7 timeline entries.`);
+    console.log(
+      `OK — ${code} walked draft → closed through every role, 7 timeline entries,` +
+        " and survived the AI being switched off mid-flight.",
+    );
   } finally {
     await db.complaint.delete({ where: { id: draft.id } });
   }

@@ -8,6 +8,7 @@ import { notifyComplaint, notifyUsers } from "@/lib/notify";
 import { ActionError, defineAction } from "@/lib/safe-action";
 import { STATUS_LABEL } from "@/constants/status";
 import { canViewComplaint } from "./lib/access";
+import { runIntake } from "./lib/ai-intake";
 import { nextComplaintCode } from "./lib/code";
 import { distanceMeters, GEO_PROOF_RADIUS_M, resolveWardId } from "./lib/geo";
 import { addTimelineEntry, transitionComplaint } from "./lib/transition";
@@ -137,6 +138,9 @@ export const submitComplaint = defineAction({
         title: `Received — ${complaint.code}`,
         body: "Your concern is with the office. We'll tell you the moment it moves.",
       });
+      // Tagging and duplicate detection run after the citizen already has their code —
+      // and land the complaint in Unclassified if anything about them goes wrong.
+      await runIntake(complaint.id);
     });
 
     return { id: complaint.id, code: complaint.code };

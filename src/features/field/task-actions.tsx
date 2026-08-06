@@ -2,13 +2,14 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { CircleCheckBig, LoaderCircle, Play, Send } from "lucide-react";
+import { CircleCheckBig, LoaderCircle, Play, Send, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import type { ComplaintStatus } from "@/generated/prisma/enums";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { addWorkNote, advanceComplaint, completeWork } from "@/features/complaints/actions";
+import { suggestResponse } from "@/features/complaints/ai-actions";
 import { ProofCapture } from "./proof-capture";
 import { SignaturePad } from "./signature-pad";
 
@@ -53,6 +54,14 @@ export function TaskActions({
     router.refresh();
   }
 
+  async function draftReply() {
+    setBusy(true);
+    const result = await suggestResponse({ id: complaintId });
+    setBusy(false);
+    if (!result.ok) return toast.message(result.error);
+    setNote(result.data.draft);
+  }
+
   async function complete() {
     setBusy(true);
     const result = await completeWork({
@@ -93,16 +102,22 @@ export function TaskActions({
               onChange={(event) => setNote(event.target.value)}
               placeholder="What you found, what you did, what is left."
             />
-            <Button
-              variant="outline"
-              size="sm"
-              className="self-start"
-              disabled={busy || note.trim().length < 3}
-              onClick={saveNote}
-            >
-              <Send />
-              Add note
-            </Button>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={busy || note.trim().length < 3}
+                onClick={saveNote}
+              >
+                <Send />
+                Add note
+              </Button>
+              {/* A draft to edit, never an auto-reply — the officer sends what they mean. */}
+              <Button variant="ghost" size="sm" disabled={busy} onClick={draftReply}>
+                {busy ? <LoaderCircle className="animate-spin" /> : <Sparkles />}
+                Draft it for me
+              </Button>
+            </div>
           </div>
 
           <div className="flex flex-col gap-2">

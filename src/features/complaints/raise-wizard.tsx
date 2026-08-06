@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { CATEGORIES, CATEGORY_ICON, CATEGORY_LABEL } from "@/constants/status";
 import { cn } from "@/lib/utils";
 import { saveDraft, submitComplaint } from "./actions";
+import { transcribeVoiceNote } from "./ai-actions";
 import { MediaUploader, type AttachedMedia } from "./media-uploader";
 
 type Draft = {
@@ -34,6 +35,7 @@ export function RaiseWizard({ draft, homeWard }: { draft: Draft | null; homeWard
   const [id, setId] = useState<string | null>(draft?.id ?? null);
   const [busy, setBusy] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [transcribing, setTranscribing] = useState(false);
 
   const [category, setCategory] = useState<ComplaintCategory | null>(draft?.category ?? null);
   const [title, setTitle] = useState(draft?.title ?? "");
@@ -86,6 +88,19 @@ export function RaiseWizard({ draft, homeWard }: { draft: Draft | null; homeWard
     if (!result.ok) return toast.error(result.error);
     toast.success(`Received — ${result.data.code}`);
     router.push(`/dashboard/complaints/${result.data.id}?new=1`);
+  }
+
+  /**
+   * A voice note becomes editable text the citizen can correct. If the assistant is off
+   * or cannot make it out, the recording still went with the complaint — nothing is lost.
+   */
+  async function transcribe(mediaId: string) {
+    setTranscribing(true);
+    const result = await transcribeVoiceNote({ mediaId });
+    setTranscribing(false);
+    if (!result.ok) return toast.message(result.error);
+    setDescription((current) => (current ? `${current}\n\n${result.data.text}` : result.data.text));
+    toast.success("Added what you said — edit it if we got a word wrong.");
   }
 
   function useMyLocation() {
@@ -183,7 +198,16 @@ export function RaiseWizard({ draft, homeWard }: { draft: Draft | null; homeWard
           {id ? (
             <div className="grid gap-2">
               <Label>Photos, video or a voice note</Label>
-              <MediaUploader complaintId={id} initial={draft?.media ?? []} />
+              <MediaUploader
+                complaintId={id}
+                initial={draft?.media ?? []}
+                onAudioAttached={transcribe}
+              />
+              {transcribing ? (
+                <p className="text-xs text-muted-foreground" aria-live="polite">
+                  Writing down what you said…
+                </p>
+              ) : null}
             </div>
           ) : (
             <p className="text-sm text-muted-foreground">
