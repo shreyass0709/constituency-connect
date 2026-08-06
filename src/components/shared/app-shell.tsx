@@ -27,10 +27,12 @@ type ShellUser = { name: string; image: string | null; role: string };
 export function AppShell({
   user,
   section,
+  unreadCount,
   children,
 }: {
   user: ShellUser;
   section: Section;
+  unreadCount: number;
   children: React.ReactNode;
 }) {
   const items = NAV_BY_SECTION[section];
@@ -61,7 +63,7 @@ export function AppShell({
             <span className="hidden text-xs text-muted-foreground sm:inline">
               Press <kbd className="rounded border px-1 font-mono">⌘K</kbd>
             </span>
-            <NotificationBell />
+            <NotificationBell initialUnread={unreadCount} />
             <UserMenu user={user} />
           </div>
         </header>
