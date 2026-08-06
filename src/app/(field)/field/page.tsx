@@ -1,4 +1,5 @@
 import { ClipboardList } from "lucide-react";
+import { getTranslations } from "next-intl/server";
 import { EmptyState } from "@/components/shared/empty-state";
 import { requireUser } from "@/lib/auth/require-user";
 import { listComplaints } from "@/features/complaints/queries";
@@ -8,6 +9,7 @@ export const metadata = { title: "My tasks" };
 
 export default async function FieldTasks() {
   const user = await requireUser("complaint.field_update");
+  const t = await getTranslations("field");
 
   const { items } = await listComplaints(user, {
     assignedToId: user.id,
@@ -18,10 +20,8 @@ export default async function FieldTasks() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="font-heading text-2xl font-semibold tracking-tight">My tasks</h1>
-        <p className="text-muted-foreground">
-          {items.length} open · nearest first once your phone shares its location.
-        </p>
+        <h1 className="font-heading text-2xl font-semibold tracking-tight">{t("myTasks")}</h1>
+        <p className="text-muted-foreground">{t("openCount", { count: items.length })}</p>
       </div>
 
       {items.length > 0 ? (
@@ -29,8 +29,8 @@ export default async function FieldTasks() {
       ) : (
         <EmptyState
           icon={ClipboardList}
-          title="No tasks assigned"
-          description="When the office assigns you work it appears here, closest job first."
+          title={t("emptyTitle")}
+          description={t("emptyDescription")}
         />
       )}
     </div>

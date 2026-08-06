@@ -190,7 +190,8 @@
     "none": "—",
     "language": "Language",
     "signOut": "Sign out",
-    "tryAgain": "Try again"
+    "tryAgain": "Try again",
+    "clear": "Clear"
   },
   "language": {
     "label": "Preferred language",
@@ -209,7 +210,44 @@
     "toggleTheme": "Toggle theme"
   },
   "field": {
-    "navigate": "Navigate"
+    "navigate": "Navigate",
+    "myTasks": "My tasks",
+    "openCount": "{count} open · nearest first once your phone shares its location.",
+    "emptyTitle": "No tasks assigned",
+    "emptyDescription": "When the office assigns you work it appears here, closest job first.",
+    "task": {
+      "start": "Start work",
+      "started": "Work started. The citizen has been told.",
+      "proof": "Proof of work",
+      "workNote": "Work note",
+      "workNotePlaceholder": "What you found, what you did, what is left.",
+      "addNote": "Add note",
+      "noteAdded": "Note added.",
+      "draftForMe": "Draft it for me",
+      "finishUp": "Finish up",
+      "finishUpPlaceholder": "Summary the citizen will read (optional).",
+      "markCompleted": "Mark completed",
+      "completed": "Marked complete. The citizen has 7 days to confirm.",
+      "proofRequired": "At least one proof photo is required. The signature is optional."
+    },
+    "proof": {
+      "addPhoto": "Add proof photo",
+      "saved": "Proof saved.",
+      "savedVerified": "Proof saved and location verified.",
+      "savedOffSite": "Saved, but this was taken {metres} m from the reported spot.",
+      "uploadFailed": "Upload failed.",
+      "noFix": "no fix",
+      "onSite": "on site",
+      "metresAway": "{metres} m away"
+    },
+    "signature": {
+      "area": "Signature area",
+      "attach": "Attach signature",
+      "signed": "Signed",
+      "attached": "Signature attached.",
+      "nothingSigned": "Nothing signed yet.",
+      "saveFailed": "Could not save the signature."
+    }
   },
   "publicSite": {
     "siteNav": "Site",

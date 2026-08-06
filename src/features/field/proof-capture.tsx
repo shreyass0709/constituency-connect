@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import Image from "next/image";
 import { Camera, CircleCheckBig, LoaderCircle, MapPin, TriangleAlert } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { attachMedia } from "@/features/complaints/actions";
@@ -25,6 +26,7 @@ export function ProofCapture({
   const [items, setItems] = useState<Proof[]>(
     initial.map((item) => ({ ...item, distanceMeters: null, offSite: false })),
   );
+  const t = useTranslations("field.proof");
   const [busy, setBusy] = useState(false);
   const input = useRef<HTMLInputElement>(null);
 
@@ -70,14 +72,12 @@ export function ProofCapture({
         },
       ]);
       if (result.data.offSite) {
-        toast.warning(
-          `Saved, but this was taken ${result.data.distanceMeters} m from the reported spot.`,
-        );
+        toast.warning(t("savedOffSite", { metres: result.data.distanceMeters ?? 0 }));
       } else {
-        toast.success(position ? "Proof saved and location verified." : "Proof saved.");
+        toast.success(position ? t("savedVerified") : t("saved"));
       }
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Upload failed.");
+      toast.error(error instanceof Error ? error.message : t("uploadFailed"));
     } finally {
       setBusy(false);
     }
@@ -99,7 +99,7 @@ export function ProofCapture({
       />
       <Button type="button" variant="outline" disabled={busy} onClick={() => input.current?.click()}>
         {busy ? <LoaderCircle className="animate-spin" /> : <Camera />}
-        Add proof photo
+        {t("addPhoto")}
       </Button>
 
       {items.length > 0 ? (
@@ -116,17 +116,17 @@ export function ProofCapture({
               {item.distanceMeters === null ? (
                 <span className="flex items-center gap-1 text-[0.7rem] text-muted-foreground">
                   <MapPin className="size-3" aria-hidden />
-                  no fix
+                  {t("noFix")}
                 </span>
               ) : item.offSite ? (
                 <span className="flex items-center gap-1 text-[0.7rem] text-amber-600 dark:text-amber-400">
                   <TriangleAlert className="size-3" aria-hidden />
-                  {item.distanceMeters} m away
+                  {t("metresAway", { metres: item.distanceMeters })}
                 </span>
               ) : (
                 <span className="flex items-center gap-1 text-[0.7rem] text-green-600 dark:text-green-400">
                   <CircleCheckBig className="size-3" aria-hidden />
-                  on site
+                  {t("onSite")}
                 </span>
               )}
             </li>

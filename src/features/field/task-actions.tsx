@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { CircleCheckBig, LoaderCircle, Play, Send, Sparkles } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import type { ComplaintStatus } from "@/generated/prisma/enums";
 import { Button } from "@/components/ui/button";
@@ -26,6 +27,7 @@ export function TaskActions({
   status: ComplaintStatus;
   proof: { id: string; url: string }[];
 }) {
+  const t = useTranslations("field.task");
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState("");
@@ -40,7 +42,7 @@ export function TaskActions({
     const result = await advanceComplaint({ id: complaintId, to: "IN_PROGRESS" });
     setBusy(false);
     if (!result.ok) return toast.error(result.error);
-    toast.success("Work started. The citizen has been told.");
+    toast.success(t("started"));
     router.refresh();
   }
 
@@ -50,7 +52,7 @@ export function TaskActions({
     setBusy(false);
     if (!result.ok) return toast.error(result.error);
     setNote("");
-    toast.success("Note added.");
+    toast.success(t("noteAdded"));
     router.refresh();
   }
 
@@ -71,7 +73,7 @@ export function TaskActions({
     });
     setBusy(false);
     if (!result.ok) return toast.error(result.error);
-    toast.success("Marked complete. The citizen has 7 days to confirm.");
+    toast.success(t("completed"));
     router.refresh();
   }
 
@@ -82,25 +84,25 @@ export function TaskActions({
       {canStart ? (
         <Button onClick={start} disabled={busy} size="lg">
           {busy ? <LoaderCircle className="animate-spin" /> : <Play />}
-          Start work
+          {t("start")}
         </Button>
       ) : null}
 
       {working ? (
         <>
           <div className="flex flex-col gap-2">
-            <Label>Proof of work</Label>
+            <Label>{t("proof")}</Label>
             <ProofCapture complaintId={complaintId} initial={proof} />
           </div>
 
           <div className="flex flex-col gap-2">
-            <Label htmlFor="work-note">Work note</Label>
+            <Label htmlFor="work-note">{t("workNote")}</Label>
             <Textarea
               id="work-note"
               rows={3}
               value={note}
               onChange={(event) => setNote(event.target.value)}
-              placeholder="What you found, what you did, what is left."
+              placeholder={t("workNotePlaceholder")}
             />
             <div className="flex flex-wrap gap-2">
               <Button
@@ -110,32 +112,32 @@ export function TaskActions({
                 onClick={saveNote}
               >
                 <Send />
-                Add note
+                {t("addNote")}
               </Button>
               {/* A draft to edit, never an auto-reply — the officer sends what they mean. */}
               <Button variant="ghost" size="sm" disabled={busy} onClick={draftReply}>
                 {busy ? <LoaderCircle className="animate-spin" /> : <Sparkles />}
-                Draft it for me
+                {t("draftForMe")}
               </Button>
             </div>
           </div>
 
           <div className="flex flex-col gap-2">
-            <Label htmlFor="completion-note">Finish up</Label>
+            <Label htmlFor="completion-note">{t("finishUp")}</Label>
             <Textarea
               id="completion-note"
               rows={2}
               value={completionNote}
               onChange={(event) => setCompletionNote(event.target.value)}
-              placeholder="Summary the citizen will read (optional)."
+              placeholder={t("finishUpPlaceholder")}
             />
             <SignaturePad complaintId={complaintId} onSigned={setSignatureMediaId} />
             <Button onClick={complete} disabled={busy} size="lg">
               {busy ? <LoaderCircle className="animate-spin" /> : <CircleCheckBig />}
-              Mark completed
+              {t("markCompleted")}
             </Button>
             <p className="text-xs text-muted-foreground">
-              At least one proof photo is required. The signature is optional.
+              {t("proofRequired")}
             </p>
           </div>
         </>

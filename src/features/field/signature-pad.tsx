@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { LoaderCircle, PenLine, RotateCcw } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { attachMedia } from "@/features/complaints/actions";
@@ -18,6 +19,8 @@ export function SignaturePad({
   complaintId: string;
   onSigned: (mediaId: string) => void;
 }) {
+  const t = useTranslations("field.signature");
+  const common = useTranslations("common");
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const drawing = useRef(false);
   const [dirty, setDirty] = useState(false);
@@ -51,7 +54,7 @@ export function SignaturePad({
 
   async function save() {
     const canvas = canvasRef.current;
-    if (!canvas || !dirty) return toast.error("Nothing signed yet.");
+    if (!canvas || !dirty) return toast.error(t("nothingSigned"));
     setBusy(true);
     try {
       const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/png"));
@@ -68,9 +71,9 @@ export function SignaturePad({
 
       onSigned(result.data.id);
       setSigned(true);
-      toast.success("Signature attached.");
+      toast.success(t("attached"));
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Could not save the signature.");
+      toast.error(error instanceof Error ? error.message : t("saveFailed"));
     } finally {
       setBusy(false);
     }
@@ -82,7 +85,7 @@ export function SignaturePad({
         ref={canvasRef}
         width={600}
         height={200}
-        aria-label="Signature area"
+        aria-label={t("area")}
         className="h-40 w-full touch-none rounded-xl border bg-white"
         onPointerDown={(event) => {
           event.currentTarget.setPointerCapture(event.pointerId);
@@ -110,11 +113,11 @@ export function SignaturePad({
       <div className="flex gap-2">
         <Button type="button" variant="ghost" size="sm" onClick={clear} disabled={busy}>
           <RotateCcw />
-          Clear
+          {common("clear")}
         </Button>
         <Button type="button" variant="outline" size="sm" onClick={save} disabled={busy || signed}>
           {busy ? <LoaderCircle className="animate-spin" /> : <PenLine />}
-          {signed ? "Signed" : "Attach signature"}
+          {signed ? t("signed") : t("attach")}
         </Button>
       </div>
     </div>
