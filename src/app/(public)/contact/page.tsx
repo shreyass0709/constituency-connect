@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 import { Clock, Download, Mail, MapPin, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getRepresentative, listDocuments } from "@/features/public-site/queries";
@@ -13,6 +14,8 @@ export const metadata = {
 type EmergencyContact = { label?: string; phone?: string };
 
 export default async function ContactPage() {
+  const t = await getTranslations("contactPage");
+  const nav = await getTranslations("publicNav");
   const [representative, documents] = await Promise.all([getRepresentative(), listDocuments()]);
 
   const emergency = Array.isArray(representative?.emergencyContacts)
@@ -22,13 +25,10 @@ export default async function ContactPage() {
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-10 px-4 py-16">
       <header className="flex flex-col gap-2">
-        <h1 className="font-heading text-3xl font-semibold tracking-tight">Contact the office</h1>
-        <p className="text-muted-foreground">
-          For a civic problem, raising a concern gets you a tracking code and a record —
-          faster than a phone call.
-        </p>
+        <h1 className="font-heading text-3xl font-semibold tracking-tight">{t("title")}</h1>
+        <p className="text-muted-foreground">{t("intro")}</p>
         <Button asChild className="w-fit">
-          <Link href="/dashboard/raise">Raise a concern</Link>
+          <Link href="/dashboard/raise">{nav("raiseConcern")}</Link>
         </Button>
       </header>
 
@@ -65,7 +65,7 @@ export default async function ContactPage() {
 
       {emergency.length > 0 ? (
         <section className="flex flex-col gap-3">
-          <h2 className="font-heading text-xl font-semibold">Emergency numbers</h2>
+          <h2 className="font-heading text-xl font-semibold">{t("emergency")}</h2>
           <ul className="grid gap-2 sm:grid-cols-2">
             {emergency.map((contact, index) => (
               <li key={index} className="flex items-center gap-3 rounded-2xl border p-4 text-sm">
@@ -82,7 +82,7 @@ export default async function ContactPage() {
 
       {documents.length > 0 ? (
         <section className="flex flex-col gap-3">
-          <h2 className="font-heading text-xl font-semibold">Documents</h2>
+          <h2 className="font-heading text-xl font-semibold">{t("documents")}</h2>
           <ul className="flex flex-col gap-2">
             {documents.map((document) => (
               <li key={document.id}>

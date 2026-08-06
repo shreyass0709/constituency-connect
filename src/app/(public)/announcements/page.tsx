@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 import { formatDate } from "@/lib/utils";
 import { listAnnouncements } from "@/features/public-site/queries";
 
@@ -10,11 +11,12 @@ export const metadata = {
 };
 
 export default async function AnnouncementsPage() {
+  const t = await getTranslations("announcementsPage");
   const announcements = await listAnnouncements();
 
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-8 px-4 py-16">
-      <h1 className="font-heading text-3xl font-semibold tracking-tight">News & announcements</h1>
+      <h1 className="font-heading text-3xl font-semibold tracking-tight">{t("title")}</h1>
 
       {announcements.length > 0 ? (
         <ul className="flex flex-col gap-3">
@@ -44,7 +46,7 @@ export default async function AnnouncementsPage() {
         </ul>
       ) : (
         <p className="rounded-2xl border border-dashed p-8 text-center text-muted-foreground">
-          Nothing announced yet.
+          {t("empty")}
         </p>
       )}
     </div>

@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { getTranslations } from "next-intl/server";
 import { Play } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import { listGallery } from "@/features/public-site/queries";
@@ -16,13 +17,14 @@ export const metadata = {
  * screen for the same thing.
  */
 export default async function GalleryPage() {
+  const t = await getTranslations("galleryPage");
   const items = await listGallery();
 
   return (
     <div className="mx-auto flex max-w-6xl flex-col gap-8 px-4 py-16">
       <header className="flex flex-col gap-2">
-        <h1 className="font-heading text-3xl font-semibold tracking-tight">Gallery & media</h1>
-        <p className="text-muted-foreground">From the wards, the office, and the press.</p>
+        <h1 className="font-heading text-3xl font-semibold tracking-tight">{t("title")}</h1>
+        <p className="text-muted-foreground">{t("intro")}</p>
       </header>
 
       {items.length > 0 ? (
@@ -55,7 +57,7 @@ export default async function GalleryPage() {
         </ul>
       ) : (
         <p className="rounded-2xl border border-dashed p-8 text-center text-muted-foreground">
-          Nothing in the gallery yet.
+          {t("empty")}
         </p>
       )}
     </div>

@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { getTranslations } from "next-intl/server";
 import type { Metadata } from "next";
 import { getRepresentative, listTestimonials } from "@/features/public-site/queries";
 
@@ -15,6 +16,7 @@ export async function generateMetadata(): Promise<Metadata> {
 type Achievement = { year?: string | number; title?: string; description?: string };
 
 export default async function AboutPage() {
+  const t = await getTranslations("aboutPage");
   const [representative, testimonials] = await Promise.all([
     getRepresentative(),
     listTestimonials(6),
@@ -23,7 +25,7 @@ export default async function AboutPage() {
   if (!representative) {
     return (
       <div className="mx-auto max-w-3xl px-4 py-20">
-        <p className="text-muted-foreground">The office profile has not been published yet.</p>
+        <p className="text-muted-foreground">{t("notPublished")}</p>
       </div>
     );
   }
@@ -75,18 +77,18 @@ export default async function AboutPage() {
       </header>
 
       <section className="flex flex-col gap-3">
-        <h2 className="font-heading text-xl font-semibold">About</h2>
+        <h2 className="font-heading text-xl font-semibold">{t("about")}</h2>
         <p className="whitespace-pre-wrap text-muted-foreground">{representative.bio}</p>
       </section>
 
       <section className="flex flex-col gap-3">
-        <h2 className="font-heading text-xl font-semibold">Vision</h2>
+        <h2 className="font-heading text-xl font-semibold">{t("vision")}</h2>
         <p className="whitespace-pre-wrap text-muted-foreground">{representative.vision}</p>
       </section>
 
       {achievements.length > 0 ? (
         <section className="flex flex-col gap-3">
-          <h2 className="font-heading text-xl font-semibold">Achievements</h2>
+          <h2 className="font-heading text-xl font-semibold">{t("achievements")}</h2>
           <ol className="flex flex-col gap-3 border-l pl-6">
             {achievements.map((item, index) => (
               <li key={index} className="relative">
@@ -111,7 +113,7 @@ export default async function AboutPage() {
 
       {testimonials.length > 0 ? (
         <section className="flex flex-col gap-3">
-          <h2 className="font-heading text-xl font-semibold">What people say</h2>
+          <h2 className="font-heading text-xl font-semibold">{t("testimonials")}</h2>
           <ul className="grid gap-3 sm:grid-cols-2">
             {testimonials.map((testimonial) => (
               <li key={testimonial.id} className="rounded-2xl border p-4">

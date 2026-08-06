@@ -375,5 +375,89 @@
       "registered": "Thank you — the office will be in touch.",
       "updated": "Details updated."
     }
+  },
+  "home": {
+    "yourConstituency": "Your constituency",
+    "headline": "Your voice, our action",
+    "visionFallback": "Every civic issue heard, triaged, and resolved — in the open.",
+    "trackMine": "Track my concern",
+    "officeOf": "Office of {name}",
+    "whatHappened": "What has happened",
+    "fullDashboard": "See the full dashboard",
+    "seeOnMap": "See it on the map",
+    "mapHint": "Every concern raised and every project finished, ward by ward. Pins are moved slightly so nobody's home can be identified.",
+    "openMap": "Open the Transformation Map",
+    "impactStories": "Impact stories",
+    "allStories": "All stories",
+    "constituency": "Constituency",
+    "latestNews": "Latest news",
+    "allAnnouncements": "All announcements"
+  },
+  "actionPage": {
+    "title": "Action Dashboard",
+    "intro": "Counters drawn straight from resolved complaints and completed projects, plus figures the office enters by hand. Recomputed every night — not a marketing page.",
+    "empty": "No counters have been published yet.",
+    "detail": "Want the detail behind a number? <map>Open the Transformation Map</map> or <stories>read the impact stories</stories>."
+  },
+  "mapPage": {
+    "title": "Transformation Map",
+    "intro": "Concerns and completed projects across the constituency. Complaint pins are moved up to 50 metres from their true position, and never carry a name — the street is the point, not the household.",
+    "mapLabel": "Map of concerns and projects",
+    "loading": "Loading the map…",
+    "failed": "The map could not be loaded. The <stories>impact stories</stories> cover the same ground.",
+    "project": "Project · {status}",
+    "readWhatChanged": "Read what changed",
+    "jitterNote": "Pins are moved up to 50 m so no home can be identified.",
+    "tapPin": "Tap a pin to see what it is."
+  },
+  "storiesPage": {
+    "intro": "Each one started as a concern somebody raised. Names are never published.",
+    "empty": "No stories have been published yet."
+  },
+  "announcementsPage": {
+    "title": "News & announcements",
+    "empty": "Nothing announced yet."
+  },
+  "galleryPage": {
+    "title": "Gallery & media",
+    "intro": "From the wards, the office, and the press.",
+    "empty": "Nothing in the gallery yet."
+  },
+  "faqPage": {
+    "title": "Frequently asked questions",
+    "empty": "No questions have been published yet.",
+    "notAnswered": "Not answered here? <contact>Contact the office</contact> or <raise>raise a concern</raise>."
+  },
+  "aboutPage": {
+    "notPublished": "The office profile has not been published yet.",
+    "about": "About",
+    "vision": "Vision",
+    "achievements": "Achievements",
+    "testimonials": "What people say"
+  },
+  "schemesPage": {
+    "title": "Government schemes",
+    "intro": "What each scheme is for, who qualifies, and the papers to bring to the office.",
+    "whoQualifies": "Who qualifies",
+    "whatYouGet": "What you get",
+    "documents": "Documents to bring",
+    "applyOnline": "Apply online",
+    "empty": "No schemes have been listed yet."
+  },
+  "contactPage": {
+    "title": "Contact the office",
+    "intro": "For a civic problem, raising a concern gets you a tracking code and a record — faster than a phone call.",
+    "emergency": "Emergency numbers",
+    "documents": "Documents"
+  },
+  "chat": {
+    "opener": "Hello! Ask me about schemes, the office, or how to raise a concern. For a problem in your area, tap “Raise a Concern” and you'll get a tracking code.",
+    "ask": "Ask a question",
+    "heading": "Ask the office",
+    "close": "Close the assistant",
+    "placeholder": "Type your question",
+    "yourQuestion": "Your question",
+    "send": "Send",
+    "failed": "Something went wrong. The FAQ page has the same answers."
   }
 }

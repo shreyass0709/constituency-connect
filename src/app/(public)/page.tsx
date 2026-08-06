@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import type { Metadata } from "next";
 import { ArrowRight, MapPin } from "lucide-react";
+import { getTranslations } from "next-intl/server";
 import { Button } from "@/components/ui/button";
 import { formatDate } from "@/lib/utils";
 import { ActionStats } from "@/features/public-site/action-stats";
@@ -31,6 +32,8 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function HomePage() {
+  const t = await getTranslations("home");
+  const nav = await getTranslations("publicNav");
   const [representative, stats, stories, announcements] = await Promise.all([
     getRepresentative(),
     listActionStats(),
@@ -43,25 +46,24 @@ export default async function HomePage() {
       <section className="border-b bg-gradient-to-b from-primary/5 to-transparent">
         <div className="mx-auto flex max-w-4xl flex-col items-center gap-6 px-4 py-20 text-center">
           <p className="text-sm font-medium uppercase tracking-widest text-muted-foreground">
-            {representative?.constituencyName ?? "Your constituency"}
+            {representative?.constituencyName ?? t("yourConstituency")}
           </p>
           <h1 className="font-heading text-4xl font-semibold tracking-tight sm:text-5xl">
-            Your voice, our action
+            {t("headline")}
           </h1>
           <p className="max-w-xl text-lg text-muted-foreground">
-            {representative?.vision ??
-              "Every civic issue heard, triaged, and resolved — in the open."}
+            {representative?.vision ?? t("visionFallback")}
           </p>
           <div className="flex flex-col gap-3 sm:flex-row">
             <Button asChild size="lg">
-              <Link href="/dashboard/raise">Raise a concern</Link>
+              <Link href="/dashboard/raise">{nav("raiseConcern")}</Link>
             </Button>
             <Button asChild size="lg" variant="outline">
-              <Link href="/track">Track my concern</Link>
+              <Link href="/track">{t("trackMine")}</Link>
             </Button>
           </div>
           {representative ? (
-            <p className="text-sm text-muted-foreground">Office of {representative.name}</p>
+            <p className="text-sm text-muted-foreground">{t("officeOf", { name: representative.name })}</p>
           ) : null}
         </div>
       </section>
@@ -69,9 +71,9 @@ export default async function HomePage() {
       {stats.length > 0 ? (
         <section className="mx-auto max-w-6xl px-4 py-16">
           <div className="mb-6 flex flex-wrap items-baseline gap-3">
-            <h2 className="font-heading text-2xl font-semibold tracking-tight">What has happened</h2>
+            <h2 className="font-heading text-2xl font-semibold tracking-tight">{t("whatHappened")}</h2>
             <Link href="/action" className="text-sm text-primary hover:underline">
-              See the full dashboard
+              {t("fullDashboard")}
             </Link>
           </div>
           <ActionStats stats={stats} />
@@ -81,16 +83,13 @@ export default async function HomePage() {
       <section className="border-y bg-muted/30">
         <div className="mx-auto flex max-w-6xl flex-col items-start gap-4 px-4 py-16">
           <h2 className="font-heading text-2xl font-semibold tracking-tight">
-            See it on the map
+            {t("seeOnMap")}
           </h2>
-          <p className="max-w-xl text-muted-foreground">
-            Every concern raised and every project finished, ward by ward. Pins are moved
-            slightly so nobody&apos;s home can be identified.
-          </p>
+          <p className="max-w-xl text-muted-foreground">{t("mapHint")}</p>
           <Button asChild variant="outline">
             <Link href="/map">
               <MapPin />
-              Open the Transformation Map
+              {t("openMap")}
             </Link>
           </Button>
         </div>
@@ -99,9 +98,9 @@ export default async function HomePage() {
       {stories.length > 0 ? (
         <section className="mx-auto max-w-6xl px-4 py-16">
           <div className="mb-6 flex flex-wrap items-baseline gap-3">
-            <h2 className="font-heading text-2xl font-semibold tracking-tight">Impact stories</h2>
+            <h2 className="font-heading text-2xl font-semibold tracking-tight">{t("impactStories")}</h2>
             <Link href="/stories" className="text-sm text-primary hover:underline">
-              All stories
+              {t("allStories")}
             </Link>
           </div>
           <ul className="grid gap-4 sm:grid-cols-3">
@@ -123,7 +122,7 @@ export default async function HomePage() {
                   <div className="flex flex-col gap-1 p-4">
                     <span className="font-medium">{story.title}</span>
                     <span className="text-xs text-muted-foreground">
-                      {story.ward?.name ?? "Constituency"} · {formatDate(story.publishedAt)}
+                      {story.ward?.name ?? t("constituency")} · {formatDate(story.publishedAt)}
                     </span>
                   </div>
                 </Link>
@@ -136,9 +135,9 @@ export default async function HomePage() {
       {announcements.length > 0 ? (
         <section className="mx-auto max-w-6xl px-4 pb-20">
           <div className="mb-6 flex flex-wrap items-baseline gap-3">
-            <h2 className="font-heading text-2xl font-semibold tracking-tight">Latest news</h2>
+            <h2 className="font-heading text-2xl font-semibold tracking-tight">{t("latestNews")}</h2>
             <Link href="/announcements" className="text-sm text-primary hover:underline">
-              All announcements
+              {t("allAnnouncements")}
             </Link>
           </div>
           <ul className="flex flex-col gap-2">

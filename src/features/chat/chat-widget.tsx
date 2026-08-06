@@ -3,22 +3,21 @@
 import { useRef, useState } from "react";
 import Link from "next/link";
 import { MessageSquarePlus, Send, Sparkles, X } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
 type Turn = { role: "user" | "assistant"; content: string };
 
-const OPENER =
-  "Hello! Ask me about schemes, the office, or how to raise a concern. For a problem in your area, tap “Raise a Concern” and you'll get a tracking code.";
-
 /**
  * The public assistant. Streams plain text, keeps the whole exchange client-side, and
  * always leaves the real door — raising a concern — visible underneath it.
  */
 export function ChatWidget() {
+  const t = useTranslations("chat");
   const [open, setOpen] = useState(false);
-  const [turns, setTurns] = useState<Turn[]>([{ role: "assistant", content: OPENER }]);
+  const [turns, setTurns] = useState<Turn[]>([{ role: "assistant", content: t("opener") }]);
   const [draft, setDraft] = useState("");
   const [busy, setBusy] = useState(false);
   const scroller = useRef<HTMLDivElement>(null);
@@ -63,7 +62,7 @@ export function ChatWidget() {
           content:
             error instanceof Error
               ? error.message
-              : "Something went wrong. The FAQ page has the same answers.",
+              : t("failed"),
         },
       ]);
     } finally {
@@ -78,7 +77,7 @@ export function ChatWidget() {
         onClick={() => setOpen(true)}
       >
         <Sparkles />
-        Ask a question
+        {t("ask")}
       </Button>
     );
   }
@@ -87,12 +86,12 @@ export function ChatWidget() {
     <div className="fixed bottom-4 right-4 z-20 flex h-[28rem] w-[min(22rem,calc(100vw-2rem))] flex-col rounded-2xl border bg-background shadow-xl">
       <header className="flex items-center gap-2 border-b px-4 py-3">
         <Sparkles className="size-4 text-primary" aria-hidden />
-        <span className="font-medium">Ask the office</span>
+        <span className="font-medium">{t("heading")}</span>
         <Button
           variant="ghost"
           size="icon"
           className="ml-auto size-7"
-          aria-label="Close the assistant"
+          aria-label={t("close")}
           onClick={() => setOpen(false)}
         >
           <X />
@@ -120,11 +119,11 @@ export function ChatWidget() {
           <Input
             value={draft}
             onChange={(event) => setDraft(event.target.value)}
-            placeholder="Type your question"
-            aria-label="Your question"
+            placeholder={t("placeholder")}
+            aria-label={t("yourQuestion")}
             maxLength={2000}
           />
-          <Button type="submit" size="icon" disabled={busy} aria-label="Send">
+          <Button type="submit" size="icon" disabled={busy} aria-label={t("send")}>
             <Send />
           </Button>
         </form>

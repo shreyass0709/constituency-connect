@@ -1,4 +1,5 @@
 import { ExternalLink } from "lucide-react";
+import { getTranslations } from "next-intl/server";
 import { listSchemes } from "@/features/public-site/queries";
 
 export const revalidate = 300;
@@ -9,15 +10,14 @@ export const metadata = {
 };
 
 export default async function SchemesPage() {
+  const t = await getTranslations("schemesPage");
   const schemes = await listSchemes();
 
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-8 px-4 py-16">
       <header className="flex flex-col gap-2">
-        <h1 className="font-heading text-3xl font-semibold tracking-tight">Government schemes</h1>
-        <p className="text-muted-foreground">
-          What each scheme is for, who qualifies, and the papers to bring to the office.
-        </p>
+        <h1 className="font-heading text-3xl font-semibold tracking-tight">{t("title")}</h1>
+        <p className="text-muted-foreground">{t("intro")}</p>
       </header>
 
       {schemes.length > 0 ? (
@@ -37,14 +37,14 @@ export default async function SchemesPage() {
               <dl className="grid gap-3 text-sm sm:grid-cols-2">
                 <div>
                   <dt className="text-xs uppercase tracking-wide text-muted-foreground">
-                    Who qualifies
+                    {t("whoQualifies")}
                   </dt>
                   <dd>{scheme.eligibility}</dd>
                 </div>
                 {scheme.benefits ? (
                   <div>
                     <dt className="text-xs uppercase tracking-wide text-muted-foreground">
-                      What you get
+                      {t("whatYouGet")}
                     </dt>
                     <dd>{scheme.benefits}</dd>
                   </div>
@@ -54,7 +54,7 @@ export default async function SchemesPage() {
               {scheme.documentsRequired.length > 0 ? (
                 <div className="text-sm">
                   <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                    Documents to bring
+                    {t("documents")}
                   </p>
                   <ul className="mt-1 flex flex-wrap gap-2">
                     {scheme.documentsRequired.map((document) => (
@@ -74,7 +74,7 @@ export default async function SchemesPage() {
                   className="inline-flex w-fit items-center gap-2 text-sm text-primary hover:underline"
                 >
                   <ExternalLink className="size-4" aria-hidden />
-                  Apply online
+                  {t("applyOnline")}
                 </a>
               ) : null}
             </li>
@@ -82,7 +82,7 @@ export default async function SchemesPage() {
         </ul>
       ) : (
         <p className="rounded-2xl border border-dashed p-8 text-center text-muted-foreground">
-          No schemes have been listed yet.
+          {t("empty")}
         </p>
       )}
     </div>

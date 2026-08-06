@@ -3,8 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { LoaderCircle } from "lucide-react";
-import type { ComplaintStatus } from "@/generated/prisma/enums";
-import { CATEGORY_LABEL, STATUS_LABEL } from "@/constants/status";
+import { useTranslations } from "next-intl";
 import type { MapPin } from "./lib/pins";
 
 /**
@@ -37,6 +36,9 @@ type MapData = {
 };
 
 export function TransformationMap({ center }: { center: [number, number] }) {
+  const t = useTranslations("mapPage");
+  const categoryLabel = useTranslations("category");
+  const statusLabel = useTranslations("status");
   const container = useRef<HTMLDivElement>(null);
   const [data, setData] = useState<MapData | null>(null);
   const [error, setError] = useState(false);
@@ -99,11 +101,13 @@ export function TransformationMap({ center }: { center: [number, number] }) {
   if (error) {
     return (
       <p className="rounded-2xl border border-dashed p-8 text-center text-muted-foreground">
-        The map could not be loaded. The{" "}
-        <Link href="/stories" className="text-primary hover:underline">
-          impact stories
-        </Link>{" "}
-        cover the same ground.
+        {t.rich("failed", {
+          stories: (chunks) => (
+            <Link href="/stories" className="text-primary hover:underline">
+              {chunks}
+            </Link>
+          ),
+        })}
       </p>
     );
   }
@@ -114,13 +118,13 @@ export function TransformationMap({ center }: { center: [number, number] }) {
         <div
           ref={container}
           role="application"
-          aria-label="Map of concerns and projects"
+          aria-label={t("mapLabel")}
           className="h-[28rem] w-full rounded-2xl border bg-muted"
         />
         {!data ? (
           <span className="absolute inset-0 flex items-center justify-center gap-2 text-sm text-muted-foreground">
             <LoaderCircle className="size-4 animate-spin" aria-hidden />
-            Loading the map…
+            {t("loading")}
           </span>
         ) : null}
       </div>
@@ -132,49 +136,47 @@ export function TransformationMap({ center }: { center: [number, number] }) {
           <p className="font-medium">
             {selected.kind === "project"
               ? selected.title
-              : CATEGORY_LABEL[selected.title as keyof typeof CATEGORY_LABEL] ?? selected.title}
+              : categoryLabel.has(selected.title)
+                ? categoryLabel(selected.title)
+                : selected.title}
           </p>
           <p className="text-sm text-muted-foreground">
             {selected.kind === "project"
-              ? `Project · ${selected.status.toLowerCase()}`
-              : STATUS_LABEL[selected.status as ComplaintStatus]}
+              ? t("project", { status: selected.status.toLowerCase() })
+              : statusLabel(selected.status)}
           </p>
           {selected.storySlug ? (
             <Link href={`/stories/${selected.storySlug}`} className="text-sm text-primary hover:underline">
-              Read what changed
+              {t("readWhatChanged")}
             </Link>
           ) : null}
           {selected.kind === "complaint" ? (
             <p className="text-xs text-muted-foreground">
-              Pins are moved up to 50 m so no home can be identified.
+              {t("jitterNote")}
             </p>
           ) : null}
         </aside>
       ) : (
-        <p className="text-sm text-muted-foreground">Tap a pin to see what it is.</p>
+        <p className="text-sm text-muted-foreground">{t("tapPin")}</p>
       )}
     </div>
   );
 }
 
 function Legend() {
-  const entries: [string, string][] = [
-    ["Acknowledged", PIN_COLOUR.ACKNOWLEDGED!],
-    ["Assigned", PIN_COLOUR.ASSIGNED!],
-    ["In progress", PIN_COLOUR.IN_PROGRESS!],
-    ["Completed", PIN_COLOUR.COMPLETED!],
-    ["Closed", PIN_COLOUR.CLOSED!],
-  ];
+  const statusLabel = useTranslations("status");
+  const statuses = ["ACKNOWLEDGED", "ASSIGNED", "IN_PROGRESS", "COMPLETED", "CLOSED"] as const;
+
   return (
     <ul className="flex flex-wrap gap-x-4 gap-y-2 text-xs text-muted-foreground">
-      {entries.map(([label, colour]) => (
-        <li key={label} className="flex items-center gap-1.5">
+      {statuses.map((status) => (
+        <li key={status} className="flex items-center gap-1.5">
           <span
             aria-hidden
             className="size-2.5 rounded-full"
-            style={{ backgroundColor: colour }}
+            style={{ backgroundColor: PIN_COLOUR[status] }}
           />
-          {label}
+          {statusLabel(status)}
         </li>
       ))}
     </ul>
