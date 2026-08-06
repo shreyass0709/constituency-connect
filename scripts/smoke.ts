@@ -8,6 +8,8 @@ import { UNCLASSIFIED_WHERE } from "../src/features/complaints/queries";
 import { distanceMeters } from "../src/features/complaints/lib/geo";
 import { listMapPins } from "../src/features/public-site/map";
 import { getStoryBySlug } from "../src/features/public-site/queries";
+import { REPORT_TYPES, buildReport } from "../src/features/reports/queries";
+import { toCsv } from "../src/lib/csv";
 import { nextComplaintCode } from "../src/features/complaints/lib/code";
 import { transitionComplaint } from "../src/features/complaints/lib/transition";
 import { canViewComplaint } from "../src/features/complaints/lib/access";
@@ -251,10 +253,52 @@ async function main() {
       await db.impactStory.delete({ where: { id: story.id } });
     }
 
+    // ── Gate M5: engagement holds its "one voice, one vote" rules; reports export ──
+    const poll = await db.poll.create({
+      data: {
+        question: "Smoke test poll — deleted before this script exits",
+        options: [
+          { id: "opt-a", label: "A" },
+          { id: "opt-b", label: "B" },
+        ],
+        startsAt: new Date(Date.now() - 3_600_000),
+        endsAt: new Date(Date.now() + 3_600_000),
+      },
+      select: { id: true },
+    });
+
+    try {
+      await db.pollVote.create({
+        data: { pollId: poll.id, userId: citizen.id, optionId: "opt-a" },
+      });
+      await assert.rejects(
+        db.pollVote.create({
+          data: { pollId: poll.id, userId: citizen.id, optionId: "opt-b" },
+        }),
+        "one vote per user per poll is enforced by the database, not just the action",
+      );
+    } finally {
+      await db.poll.delete({ where: { id: poll.id } }); // votes cascade
+    }
+
+    for (const type of REPORT_TYPES) {
+      const report = await buildReport(type);
+      assert.ok(report.headers.length > 1, `${type} report has columns`);
+      assert.ok(
+        report.rows.every((row) => row.length === report.headers.length),
+        `${type} report rows line up with its headers`,
+      );
+
+      const csv = toCsv(report.headers, report.rows);
+      assert.ok(csv.startsWith("﻿"), `${type} CSV starts with the BOM Excel needs`);
+      assert.ok(csv.includes("\r\n"), `${type} CSV uses CRLF line endings`);
+    }
+
     console.log(
       `OK — ${code} walked draft → closed through every role, 7 timeline entries,` +
-        " survived the AI being switched off mid-flight, and reached the public map" +
-        " and stories page with no PII and a jittered pin.",
+        " survived the AI being switched off mid-flight, reached the public map" +
+        " and stories page with no PII and a jittered pin, and all five reports" +
+        " built and exported as Excel-readable CSV.",
     );
   } finally {
     await db.complaint.delete({ where: { id: draft.id } });
