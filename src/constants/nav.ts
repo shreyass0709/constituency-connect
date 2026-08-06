@@ -3,6 +3,7 @@ import {
   Inbox,
   LayoutDashboard,
   MessageSquarePlus,
+  Settings,
   type LucideIcon,
 } from "lucide-react";
 import type { Section } from "@/lib/auth/permissions";
@@ -16,6 +17,7 @@ export const NAV_BY_SECTION: Record<Section, NavItem[]> = {
     { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
     { href: "/dashboard/raise", label: "Raise", icon: MessageSquarePlus },
     { href: "/dashboard/complaints", label: "My concerns", icon: ClipboardList },
+    { href: "/dashboard/settings", label: "Settings", icon: Settings },
   ],
   "/office": [
     { href: "/office", label: "Dashboard", icon: LayoutDashboard },

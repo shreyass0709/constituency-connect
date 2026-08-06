@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { inBoundary, resolveWardId } from "./geo";
+import { distanceMeters, inBoundary, resolveWardId } from "./geo";
 
 // A 1°×1° square with a hole in the middle, in GeoJSON [lng, lat] order.
 const square = {
@@ -33,6 +33,29 @@ describe("inBoundary", () => {
   it("survives wards with no boundary drawn yet", () => {
     expect(inBoundary(null, 12.2, 77.2)).toBe(false);
     expect(inBoundary({ nonsense: true }, 12.2, 77.2)).toBe(false);
+  });
+});
+
+describe("distanceMeters", () => {
+  const site = { latitude: 12.9716, longitude: 77.5946 };
+
+  it("is zero at the same point and grows with separation", () => {
+    expect(distanceMeters(site, site)).toBe(0);
+    // ~0.001° of latitude is ~111 m
+    expect(distanceMeters(site, { ...site, latitude: 12.9726 })).toBeGreaterThan(100);
+    expect(distanceMeters(site, { ...site, latitude: 12.9726 })).toBeLessThan(120);
+  });
+
+  it("separates on-site proof from proof taken across town", () => {
+    // 150 m away — inside the 200 m proof radius
+    expect(distanceMeters(site, { latitude: 12.973, longitude: 77.5948 })).toBeLessThan(200);
+    // ~3 km away — outside it
+    expect(distanceMeters(site, { latitude: 13.0, longitude: 77.6 })).toBeGreaterThan(200);
+  });
+
+  it("is symmetric", () => {
+    const other = { latitude: 12.98, longitude: 77.61 };
+    expect(distanceMeters(site, other)).toBe(distanceMeters(other, site));
   });
 });
 

@@ -46,6 +46,28 @@ export function inBoundary(boundary: unknown, lat: number, lng: number): boolean
   });
 }
 
+/**
+ * Straight-line distance in metres (haversine). Used to check that a field officer's
+ * proof photo was taken at the complaint, and to sort a day's tasks by how far away they
+ * are. Earth-as-a-sphere is plenty at neighbourhood scale.
+ */
+export function distanceMeters(
+  from: { latitude: number; longitude: number },
+  to: { latitude: number; longitude: number },
+): number {
+  const R = 6_371_000;
+  const toRad = (degrees: number) => (degrees * Math.PI) / 180;
+  const dLat = toRad(to.latitude - from.latitude);
+  const dLng = toRad(to.longitude - from.longitude);
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(from.latitude)) * Math.cos(toRad(to.latitude)) * Math.sin(dLng / 2) ** 2;
+  return Math.round(2 * R * Math.asin(Math.min(1, Math.sqrt(a))));
+}
+
+/** How far a proof photo may have been taken from the complaint before we flag it. */
+export const GEO_PROOF_RADIUS_M = 200;
+
 /** The ward whose boundary contains the pin, or `fallbackWardId` when none does. */
 export function resolveWardId(
   wards: { id: string; boundary: unknown }[],

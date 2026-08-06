@@ -15,6 +15,16 @@ const schema = z.object({
   CLOUDINARY_API_SECRET: z.string().min(1).optional(),
   /** Shared secret the cron routes require in `x-cron-secret`. */
   CRON_SECRET: z.string().min(16).optional(),
+
+  // ── Notification channels (all optional; a missing channel is simply skipped) ──
+  RESEND_API_KEY: z.string().min(1).optional(),
+  EMAIL_FROM: z.string().min(1).optional(),
+  /** Public origin used to build absolute links in emails and push payloads. */
+  APP_URL: z.url().optional(),
+  /** FCM HTTP v1 service account — the three fields we actually need from its JSON. */
+  FCM_PROJECT_ID: z.string().min(1).optional(),
+  FCM_CLIENT_EMAIL: z.string().min(1).optional(),
+  FCM_PRIVATE_KEY: z.string().min(1).optional(),
 });
 
 const parsed = schema.safeParse(process.env);

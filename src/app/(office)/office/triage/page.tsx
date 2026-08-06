@@ -12,6 +12,7 @@ const TABS = {
   new: { label: "New", filters: { status: "SUBMITTED" as const } },
   acknowledged: { label: "Acknowledged", filters: { status: "ACKNOWLEDGED" as const } },
   overdue: { label: "Past SLA", filters: { overdue: true } },
+  escalated: { label: "Escalated", filters: { escalated: true } },
 };
 
 export default async function TriagePage({ searchParams }: PageProps<"/office/triage">) {
@@ -31,13 +32,20 @@ export default async function TriagePage({ searchParams }: PageProps<"/office/tr
           status: { notIn: ["DRAFT", "COMPLETED", "CLOSED", "REJECTED"] },
         },
       }),
+      db.complaint.count({
+        where: {
+          timeline: { some: { type: "ESCALATION" } },
+          status: { notIn: ["DRAFT", "CLOSED", "REJECTED"] },
+        },
+      }),
     ]),
   ]);
-  const [newCount, ackCount, overdueCount] = counts;
+  const [newCount, ackCount, overdueCount, escalatedCount] = counts;
   const badges: Record<keyof typeof TABS, number> = {
     new: newCount,
     acknowledged: ackCount,
     overdue: overdueCount,
+    escalated: escalatedCount,
   };
 
   return (

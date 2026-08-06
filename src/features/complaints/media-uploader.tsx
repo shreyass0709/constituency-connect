@@ -7,43 +7,9 @@ import { toast } from "sonner";
 import type { MediaKind } from "@/generated/prisma/enums";
 import { Button } from "@/components/ui/button";
 import { attachMedia, removeMedia } from "./actions";
+import { uploadToCloudinary } from "./upload";
 
 export type AttachedMedia = { id: string; kind: MediaKind; url: string };
-
-/** Signed direct upload: sign → PUT to Cloudinary → record the row. */
-async function uploadToCloudinary(file: Blob, kind: MediaKind, filename: string) {
-  const signed = await fetch("/api/v1/uploads/sign", {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({ kind }),
-  });
-  const signedBody = await signed.json();
-  if (!signed.ok) throw new Error(signedBody?.error?.message ?? "Uploads are unavailable.");
-
-  const { uploadUrl, fields, maxBytes } = signedBody.data as {
-    uploadUrl: string;
-    fields: Record<string, string | number>;
-    maxBytes: number;
-  };
-  if (file.size > maxBytes) {
-    throw new Error(`That file is too large — the limit is ${Math.round(maxBytes / 1024 / 1024)} MB.`);
-  }
-
-  const form = new FormData();
-  for (const [key, value] of Object.entries(fields)) form.append(key, String(value));
-  form.append("file", file, filename);
-
-  const upload = await fetch(uploadUrl, { method: "POST", body: form });
-  const result = await upload.json();
-  if (!upload.ok) throw new Error(result?.error?.message ?? "Upload failed. Try again.");
-
-  return {
-    url: result.secure_url as string,
-    publicId: result.public_id as string,
-    mimeType: file.type || null,
-    sizeBytes: file.size,
-  };
-}
 
 export function MediaUploader({
   complaintId,

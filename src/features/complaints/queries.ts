@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import type { CurrentUser } from "@/lib/auth/require-user";
 import { can } from "@/lib/auth/permissions";
 import { daysBetween } from "@/lib/utils";
+import { OPEN_STATUSES } from "@/constants/status";
 import { canViewComplaint, complaintScopeWhere } from "./lib/access";
 
 // Reads for Server Components. Every one of them narrows by `complaintScopeWhere`, so a
@@ -19,6 +20,10 @@ const CARD_SELECT = {
   createdAt: true,
   dueAt: true,
   completedAt: true,
+  // Coordinates ride along for the field officer's distance sort and navigation link.
+  latitude: true,
+  longitude: true,
+  address: true,
   ward: { select: { name: true } },
   department: { select: { name: true } },
   assignedTo: { select: { name: true } },
@@ -56,6 +61,8 @@ export type ComplaintFilters = {
   assignedToId?: string;
   /** Past its SLA deadline and still not finished. */
   overdue?: boolean;
+  /** Someone has raised a hand about it — an ESCALATION entry exists on the timeline. */
+  escalated?: boolean;
   q?: string;
   page?: number;
   limit?: number;
@@ -77,6 +84,12 @@ function whereFrom(user: CurrentUser, filters: ComplaintFilters): Prisma.Complai
         ? {
             dueAt: { lt: new Date() },
             status: { notIn: ["DRAFT", "COMPLETED", "CLOSED", "REJECTED"] },
+          }
+        : {},
+      filters.escalated
+        ? {
+            timeline: { some: { type: "ESCALATION" } },
+            status: { notIn: ["DRAFT", "CLOSED", "REJECTED"] },
           }
         : {},
       q
@@ -213,6 +226,59 @@ export async function getComplaintForViewer(id: string, user: CurrentUser) {
   // Internal notes are for people who work complaints, not for the citizen who raised one.
   if (can(user.role, "complaint.view_all")) return complaint;
   return { ...complaint, timeline: complaint.timeline.filter((entry) => entry.isPublic) };
+}
+
+/**
+ * The department dashboard's numbers. Average resolution time is one SQL aggregate on
+ * purpose — pulling every closed row into Node to subtract two dates would fall over at
+ * the 100k-complaint scale the project is designed for.
+ */
+export async function departmentStats(departmentId: string) {
+  const now = new Date();
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+
+  const [open, overdue, completedThisMonth, escalated, byCategory, averages] = await Promise.all([
+    db.complaint.count({
+      where: { departmentId, status: { in: [...OPEN_STATUSES] } },
+    }),
+    db.complaint.count({
+      where: {
+        departmentId,
+        dueAt: { lt: now },
+        status: { notIn: ["DRAFT", "COMPLETED", "CLOSED", "REJECTED"] },
+      },
+    }),
+    db.complaint.count({
+      where: { departmentId, completedAt: { gte: monthStart } },
+    }),
+    db.complaint.count({
+      where: {
+        departmentId,
+        timeline: { some: { type: "ESCALATION" } },
+        status: { notIn: ["DRAFT", "CLOSED", "REJECTED"] },
+      },
+    }),
+    db.complaint.groupBy({
+      by: ["category"],
+      where: { departmentId, status: { not: "DRAFT" } },
+      _count: { _all: true },
+      orderBy: { _count: { category: "desc" } },
+    }),
+    db.$queryRaw<{ days: number | null }[]>`
+      SELECT AVG(EXTRACT(EPOCH FROM ("completedAt" - "createdAt")) / 86400) AS days
+      FROM "Complaint"
+      WHERE "departmentId" = ${departmentId} AND "completedAt" IS NOT NULL
+    `,
+  ]);
+
+  return {
+    open,
+    overdue,
+    completedThisMonth,
+    escalated,
+    avgResolutionDays: averages[0]?.days ? Number(averages[0].days) : null,
+    byCategory: byCategory.map((row) => ({ category: row.category, count: row._count._all })),
+  };
 }
 
 /** Departments and the officers who can be assigned work in them. */

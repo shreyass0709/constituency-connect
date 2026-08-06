@@ -1,8 +1,19 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Ban, Check, LoaderCircle, Merge, RotateCcw, Star, TriangleAlert, UserCheck } from "lucide-react";
+import {
+  Ban,
+  Camera,
+  Check,
+  LoaderCircle,
+  Merge,
+  RotateCcw,
+  Star,
+  TriangleAlert,
+  UserCheck,
+} from "lucide-react";
 import { toast } from "sonner";
 import type { ComplaintCategory, ComplaintStatus, Priority } from "@/generated/prisma/enums";
 import { Button } from "@/components/ui/button";
@@ -47,6 +58,9 @@ import {
 
 const PRIORITIES = Object.keys(PRIORITY_LABEL) as Priority[];
 
+/** The statuses `advanceComplaint` accepts — completion goes through `completeWork`. */
+type OfficerMove = "DEPT_REVIEW" | "FIELD_VERIFICATION" | "IN_PROGRESS";
+
 export type ActionContext = {
   id: string;
   status: ComplaintStatus;
@@ -67,9 +81,11 @@ export function ComplaintActions(context: ActionContext) {
   const { allowed, canTriage, isOwner, status } = context;
   const run = useRunner();
 
+  // Completion is not here: it needs proof photos, so it happens on the field task page.
   const officerMoves = allowed.filter((to) =>
-    (["DEPT_REVIEW", "FIELD_VERIFICATION", "IN_PROGRESS", "COMPLETED"] as ComplaintStatus[]).includes(to),
+    (["DEPT_REVIEW", "FIELD_VERIFICATION", "IN_PROGRESS"] as ComplaintStatus[]).includes(to),
   );
+  const canComplete = allowed.includes("COMPLETED");
 
   return (
     <div className="flex flex-wrap gap-2">
@@ -166,19 +182,28 @@ export function ComplaintActions(context: ActionContext) {
       {officerMoves.map((to) => (
         <Button
           key={to}
-          variant={to === "COMPLETED" ? "default" : "outline"}
+          variant="outline"
           disabled={run.busy}
           onClick={() =>
             run.call(
-              () => advanceComplaint({ id: context.id, to }),
+              () => advanceComplaint({ id: context.id, to: to as OfficerMove }),
               `Moved to ${STATUS_LABEL[to].toLowerCase()}.`,
             )
           }
         >
           {run.busy ? <LoaderCircle className="animate-spin" /> : <UserCheck />}
-          {to === "COMPLETED" ? "Mark completed" : STATUS_LABEL[to]}
+          {STATUS_LABEL[to]}
         </Button>
       ))}
+
+      {canComplete ? (
+        <Button asChild>
+          <Link href={`/field/${context.id}`}>
+            <Camera />
+            Complete with proof
+          </Link>
+        </Button>
+      ) : null}
     </div>
   );
 }

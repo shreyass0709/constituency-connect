@@ -2,7 +2,6 @@
 
 import { after } from "next/server";
 import { randomUUID } from "node:crypto";
-import type { ComplaintStatus } from "@/generated/prisma/enums";
 import { MEDIA_RULES } from "@/lib/cloudinary";
 import { db } from "@/lib/db";
 import { notifyComplaint, notifyUsers } from "@/lib/notify";
@@ -10,13 +9,14 @@ import { ActionError, defineAction } from "@/lib/safe-action";
 import { STATUS_LABEL } from "@/constants/status";
 import { canViewComplaint } from "./lib/access";
 import { nextComplaintCode } from "./lib/code";
-import { resolveWardId } from "./lib/geo";
+import { distanceMeters, GEO_PROOF_RADIUS_M, resolveWardId } from "./lib/geo";
 import { addTimelineEntry, transitionComplaint } from "./lib/transition";
 import {
   assignSchema,
   attachMediaSchema,
   categorizeSchema,
   complaintIdSchema,
+  completeWorkSchema,
   escalateSchema,
   feedbackSchema,
   mergeSchema,
@@ -26,6 +26,7 @@ import {
   saveDraftSchema,
   submitComplaintSchema,
   submittableSchema,
+  workNoteSchema,
 } from "./schemas";
 import { z } from "zod";
 
@@ -149,10 +150,17 @@ export const attachMedia = defineAction({
   entity: "media",
   schema: attachMediaSchema,
   permission: "complaint.create",
-  handler: async ({ complaintId, ...file }, { user }) => {
+  handler: async ({ complaintId, stage, ...file }, { user }) => {
     const complaint = await db.complaint.findUnique({
       where: { id: complaintId },
-      select: { citizenId: true, departmentId: true, assignedToId: true, status: true },
+      select: {
+        citizenId: true,
+        departmentId: true,
+        assignedToId: true,
+        status: true,
+        latitude: true,
+        longitude: true,
+      },
     });
     if (!complaint || !canViewComplaint(user, complaint)) {
       throw new ActionError("That complaint is not yours to add to.");
@@ -165,25 +173,47 @@ export const attachMedia = defineAction({
       );
     }
 
+    // Geo-verification: how far from the reported spot was this actually taken? We warn,
+    // we never block — GPS drifts, buildings block the sky, and the work still happened
+    // (docs/01 FR-5).
+    const distance =
+      typeof file.latitude === "number" &&
+      typeof file.longitude === "number" &&
+      typeof complaint.latitude === "number" &&
+      typeof complaint.longitude === "number"
+        ? distanceMeters(
+            { latitude: file.latitude, longitude: file.longitude },
+            { latitude: complaint.latitude, longitude: complaint.longitude },
+          )
+        : null;
+
     const media = await db.media.create({
       data: {
         ...file,
         complaintId,
         uploadedById: user.id,
-        stage: complaint.status === "DRAFT" ? "SUBMISSION" : "PROGRESS",
+        capturedAt: new Date(),
+        stage: stage ?? (complaint.status === "DRAFT" ? "SUBMISSION" : "PROGRESS"),
       },
       select: { id: true, url: true, kind: true },
     });
 
-    if (complaint.status !== "DRAFT") {
+    if (complaint.status !== "DRAFT" && stage !== "SIGNATURE") {
       await addTimelineEntry({
         complaintId,
         type: "MEDIA_ADDED",
         actorId: user.id,
-        note: "Added a photo or recording",
+        note:
+          distance === null
+            ? "Added a photo or recording"
+            : distance <= GEO_PROOF_RADIUS_M
+              ? `Added on-site proof (${distance} m from the reported spot)`
+              : `Added proof taken ${distance} m from the reported spot`,
+        meta: distance === null ? undefined : { distanceMeters: distance },
       });
     }
-    return media;
+
+    return { ...media, distanceMeters: distance, offSite: distance !== null && distance > GEO_PROOF_RADIUS_M };
   },
 });
 
@@ -205,6 +235,94 @@ export const removeMedia = defineAction({
     // it later — deleting remotely on every click buys nothing and can fail loudly.
     await db.media.delete({ where: { id } });
     return { id };
+  },
+});
+
+// ── Field officer ───────────────────────────────────────────────────────────
+
+/** A progress note from site. Public: the citizen should see the work happening. */
+export const addWorkNote = defineAction({
+  name: "complaint.work_note",
+  entity: "complaint",
+  schema: workNoteSchema,
+  permission: "complaint.view_all",
+  handler: async ({ id, note }, { user }) => {
+    const complaint = await db.complaint.findUnique({
+      where: { id },
+      select: { id: true, code: true, citizenId: true, departmentId: true, assignedToId: true },
+    });
+    if (!complaint || !canViewComplaint(user, complaint)) {
+      throw new ActionError("That complaint is not yours to update.");
+    }
+
+    await addTimelineEntry({ complaintId: id, type: "COMMENT", actorId: user.id, note });
+
+    after(async () => {
+      await notifyComplaint(
+        id,
+        { type: "complaint.work_note", title: `Update — ${complaint.code}`, body: note },
+        { exceptUserId: user.id },
+      );
+    });
+
+    return { id };
+  },
+});
+
+/**
+ * The end of J3: work is done, here is the proof. A completion with no photo is the one
+ * thing this refuses — the after-picture is what makes the outcome visible.
+ */
+export const completeWork = defineAction({
+  name: "complaint.complete",
+  entity: "complaint",
+  schema: completeWorkSchema,
+  permission: "complaint.field_update",
+  handler: async ({ id, note, signatureMediaId }, { user }) => {
+    const proof = await db.media.count({
+      where: {
+        complaintId: id,
+        uploadedById: user.id,
+        kind: { in: ["IMAGE", "VIDEO"] },
+        stage: { in: ["PROGRESS", "VERIFICATION", "RESOLUTION"] },
+      },
+    });
+    if (proof === 0) {
+      throw new ActionError("Add at least one photo of the finished work before completing.");
+    }
+
+    if (signatureMediaId) {
+      const signature = await db.media.findUnique({
+        where: { id: signatureMediaId },
+        select: { complaintId: true },
+      });
+      if (!signature || signature.complaintId !== id) {
+        throw new ActionError("That signature does not belong to this complaint.");
+      }
+      await db.media.update({ where: { id: signatureMediaId }, data: { stage: "SIGNATURE" } });
+    }
+
+    const complaint = await transitionComplaint({
+      complaintId: id,
+      to: "COMPLETED",
+      actor: user,
+      note: note || "Work completed on site",
+      meta: { signed: Boolean(signatureMediaId) },
+    });
+
+    after(async () => {
+      await notifyComplaint(
+        complaint.id,
+        {
+          type: "complaint.status_changed",
+          title: `Work done — ${complaint.code}`,
+          body: "Please check it and confirm, or reopen within 7 days if it is not right.",
+        },
+        { exceptUserId: user.id },
+      );
+    });
+
+    return { id: complaint.id };
   },
 });
 
@@ -516,17 +634,28 @@ export const mergeDuplicate = defineAction({
   },
 });
 
+/** Anyone who works a complaint may raise a hand about it, not just the triage desk. */
 export const escalateComplaint = defineAction({
   name: "complaint.escalate",
   entity: "complaint",
   schema: escalateSchema,
-  permission: "complaint.triage",
+  permission: "complaint.view_all",
   handler: async ({ id, note }, { user }) => {
     const complaint = await db.complaint.findUnique({
       where: { id },
-      select: { id: true, code: true, title: true, status: true },
+      select: {
+        id: true,
+        code: true,
+        title: true,
+        status: true,
+        citizenId: true,
+        departmentId: true,
+        assignedToId: true,
+      },
     });
-    if (!complaint) throw new ActionError("Complaint not found.");
+    if (!complaint || !canViewComplaint(user, complaint)) {
+      throw new ActionError("Complaint not found.");
+    }
 
     await addTimelineEntry({
       complaintId: id,
@@ -560,14 +689,15 @@ export const escalateComplaint = defineAction({
 
 const advanceSchema = z.object({
   id: z.string().min(1),
-  to: z.enum(["DEPT_REVIEW", "FIELD_VERIFICATION", "IN_PROGRESS", "COMPLETED"]),
+  // COMPLETED is deliberately absent: `completeWork` is the only way in, because that is
+  // where the "no completion without proof" rule lives. One door, one guard.
+  to: z.enum(["DEPT_REVIEW", "FIELD_VERIFICATION", "IN_PROGRESS"]),
   note: z.string().trim().max(1000).optional(),
 });
 
 /**
- * The officer-side moves. One action instead of five near-identical ones: the workflow
+ * The officer-side moves. One action instead of four near-identical ones: the workflow
  * map already says who may do what, so the only thing that varies is the target status.
- * Phase 2's proof-capture and signature UI hangs extra payload off this same path.
  */
 export const advanceComplaint = defineAction({
   name: "complaint.advance",
@@ -577,7 +707,7 @@ export const advanceComplaint = defineAction({
   handler: async ({ id, to, note }, { user }) => {
     const complaint = await transitionComplaint({
       complaintId: id,
-      to: to as ComplaintStatus,
+      to,
       actor: user,
       note: note ?? null,
     });
@@ -588,10 +718,7 @@ export const advanceComplaint = defineAction({
         {
           type: "complaint.status_changed",
           title: `${STATUS_LABEL[complaint.status]} — ${complaint.code}`,
-          body:
-            complaint.status === "COMPLETED"
-              ? "The work is marked done. Please confirm or reopen within 7 days."
-              : note || `Your concern is now: ${STATUS_LABEL[complaint.status].toLowerCase()}.`,
+          body: note || `Your concern is now: ${STATUS_LABEL[complaint.status].toLowerCase()}.`,
         },
         { exceptUserId: user.id },
       );

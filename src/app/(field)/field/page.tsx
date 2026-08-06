@@ -1,8 +1,8 @@
 import { ClipboardList } from "lucide-react";
 import { EmptyState } from "@/components/shared/empty-state";
 import { requireUser } from "@/lib/auth/require-user";
-import { ComplaintList } from "@/features/complaints/complaint-list";
 import { listComplaints } from "@/features/complaints/queries";
+import { TaskList } from "@/features/field/task-list";
 
 export const metadata = { title: "My tasks" };
 
@@ -19,18 +19,18 @@ export default async function FieldTasks() {
     <div className="flex flex-col gap-6">
       <div>
         <h1 className="font-heading text-2xl font-semibold tracking-tight">My tasks</h1>
-        <p className="text-muted-foreground">{user.name} · open assignments.</p>
+        <p className="text-muted-foreground">
+          {items.length} open · nearest first once your phone shares its location.
+        </p>
       </div>
 
       {items.length > 0 ? (
-        // ponytail: newest-first, not distance-sorted. Sorting by distance needs the
-        // officer's live position — that lands with the Phase 2 PWA views.
-        <ComplaintList complaints={items} basePath="/dashboard/complaints" />
+        <TaskList tasks={items} />
       ) : (
         <EmptyState
           icon={ClipboardList}
           title="No tasks assigned"
-          description="When the office assigns you work it appears here, newest first."
+          description="When the office assigns you work it appears here, closest job first."
         />
       )}
     </div>

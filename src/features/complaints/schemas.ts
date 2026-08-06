@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { ComplaintCategory, MediaKind, Priority } from "@/generated/prisma/enums";
+import { ComplaintCategory, MediaKind, MediaStage, Priority } from "@/generated/prisma/enums";
 
 // Client parses these for UX, the action parses them again for truth
 // (docs/02-architecture.md §8, "validation doctrine").
@@ -41,6 +41,8 @@ export const complaintIdSchema = z.object({ id: z.string().min(1) });
 export const attachMediaSchema = z.object({
   complaintId: z.string().min(1),
   kind: z.enum(MediaKind),
+  /** Omitted by the citizen's wizard; set explicitly by field proof and signatures. */
+  stage: z.enum(MediaStage).optional(),
   url: z.url(),
   publicId: z.string().min(1),
   mimeType: z.string().max(120).nullish(),
@@ -79,6 +81,19 @@ export const mergeSchema = z.object({
 export const escalateSchema = z.object({
   id: z.string().min(1),
   note: z.string().trim().min(5, "Add a short note.").max(1000),
+});
+
+// ── Field officer ───────────────────────────────────────────────────────────
+
+export const workNoteSchema = z.object({
+  id: z.string().min(1),
+  note: z.string().trim().min(3, "Write a short note.").max(1000),
+});
+
+export const completeWorkSchema = z.object({
+  id: z.string().min(1),
+  note: z.string().trim().max(1000).optional(),
+  signatureMediaId: z.string().nullish(),
 });
 
 // ── Citizen close-out ───────────────────────────────────────────────────────
