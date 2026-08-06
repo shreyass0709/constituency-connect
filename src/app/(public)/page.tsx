@@ -23,10 +23,11 @@ export default async function HomePage() {
       </p>
       <div className="flex flex-col gap-3 sm:flex-row">
         <Button asChild size="lg">
-          <Link href="/login">Raise a concern</Link>
+          {/* Proxy bounces anonymous visitors to /login and brings them back here. */}
+          <Link href="/dashboard/raise">Raise a concern</Link>
         </Button>
         <Button asChild size="lg" variant="outline">
-          <Link href="/login">Track my concern</Link>
+          <Link href="/track">Track my concern</Link>
         </Button>
       </div>
       {representative && (

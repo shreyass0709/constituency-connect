@@ -12,11 +12,14 @@ import type { ComplaintCard } from "./queries";
 export function ComplaintList({
   complaints,
   basePath,
-  selectable,
+  selected,
+  onToggle,
 }: {
   complaints: ComplaintCard[];
   basePath: string;
-  selectable?: boolean;
+  /** Present only when a client parent (the triage board) is running bulk selection. */
+  selected?: Set<string>;
+  onToggle?: (id: string) => void;
 }) {
   return (
     <ul className="flex flex-col gap-2">
@@ -26,11 +29,11 @@ export function ComplaintList({
         return (
           <li key={complaint.id} className="rounded-2xl border transition-colors hover:bg-muted/40">
             <div className="flex items-start gap-3 p-4">
-              {selectable ? (
+              {onToggle ? (
                 <input
                   type="checkbox"
-                  name="ids"
-                  value={complaint.id}
+                  checked={selected?.has(complaint.id) ?? false}
+                  onChange={() => onToggle(complaint.id)}
                   aria-label={`Select ${complaint.code}`}
                   className="mt-1 size-4 accent-primary"
                 />

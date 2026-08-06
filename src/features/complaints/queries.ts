@@ -34,6 +34,8 @@ export type ComplaintFilters = {
   departmentId?: string;
   wardId?: string;
   assignedToId?: string;
+  /** Past its SLA deadline and still not finished. */
+  overdue?: boolean;
   q?: string;
   page?: number;
   limit?: number;
@@ -51,6 +53,12 @@ function whereFrom(user: CurrentUser, filters: ComplaintFilters): Prisma.Complai
       departmentId ? { departmentId } : {},
       wardId ? { wardId } : {},
       assignedToId ? { assignedToId } : {},
+      filters.overdue
+        ? {
+            dueAt: { lt: new Date() },
+            status: { notIn: ["DRAFT", "COMPLETED", "CLOSED", "REJECTED"] },
+          }
+        : {},
       q
         ? {
             OR: [
