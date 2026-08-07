@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Languages, LoaderCircle } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { LANGUAGES } from "@/features/auth/schemas";
+import { LANGUAGES } from "@/constants/languages";
 import { translateComplaint } from "./ai-actions";
 
 /**
