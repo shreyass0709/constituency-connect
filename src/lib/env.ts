@@ -22,7 +22,7 @@ const schema = z.object({
   /** Required only when SMS_PROVIDER=msg91; `sendOtpSms` throws if one is missing. */
   MSG91_AUTH_KEY: optional(z.string().min(1)),
   MSG91_TEMPLATE_ID: optional(z.string().min(1)),
-  // Optional: without them the app runs fine, photo/voice attachments just stay off.
+  // Optional: uploads are disabled when unset (file attachments stay off).
   CLOUDINARY_CLOUD_NAME: optional(z.string().min(1)),
   CLOUDINARY_API_KEY: optional(z.string().min(1)),
   CLOUDINARY_API_SECRET: optional(z.string().min(1)),
