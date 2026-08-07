@@ -15,7 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { completeOnboarding } from "./actions";
-import { LANGUAGES } from "./schemas";
+import { LANGUAGES } from "@/constants/languages";
 
 export function OnboardingForm({
   defaultName,

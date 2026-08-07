@@ -4,7 +4,7 @@ import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { toast } from "sonner";
-import { LANGUAGES } from "@/features/auth/schemas";
+import { LANGUAGES } from "@/constants/languages";
 import { cn } from "@/lib/utils";
 import { setLanguage } from "./actions";
 

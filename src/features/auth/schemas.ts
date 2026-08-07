@@ -1,9 +1,5 @@
 import { z } from "zod";
-
-export const LANGUAGES = [
-  { value: "en", label: "English" },
-  { value: "hi", label: "हिन्दी" },
-] as const;
+import { LANGUAGES } from "@/constants/languages";
 
 export const onboardingSchema = z.object({
   name: z.string().trim().min(2, "Please enter your full name.").max(80),
