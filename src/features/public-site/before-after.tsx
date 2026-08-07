@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 
+import { publicImageUrl } from "./lib/public-image";
+
 /**
  * The before/after wipe. A range input on top of two stacked images: it is keyboard
  * operable for free, screen readers announce it as a slider, and it costs no dependency.
@@ -22,10 +24,15 @@ export function BeforeAfter({
       <div className="relative aspect-video overflow-hidden rounded-2xl border">
         {/* eslint-disable @next/next/no-img-element -- both layers must share one
             absolutely-positioned box for the clip to line up; next/image's own wrapper
-            div breaks the overlay. These are Cloudinary URLs, already transformed. */}
-        <img src={before} alt={`${label} — before`} className="absolute inset-0 size-full object-cover" />
+            div breaks the overlay. Because these bypass next/image, nothing else re-encodes
+            them, so `publicImageUrl` is what strips the EXIF off a citizen's photo here. */}
         <img
-          src={after}
+          src={publicImageUrl(before)}
+          alt={`${label} — before`}
+          className="absolute inset-0 size-full object-cover"
+        />
+        <img
+          src={publicImageUrl(after)}
           alt={`${label} — after`}
           className="absolute inset-0 size-full object-cover"
           style={{ clipPath: `inset(0 0 0 ${position}%)` }}

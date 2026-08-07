@@ -1,5 +1,6 @@
 import type { ComplaintCategory, ComplaintStatus } from "@/generated/prisma/enums";
 import { jitterPoint } from "./jitter";
+import { publicImageUrl } from "./public-image";
 
 /**
  * The privacy boundary of the public map, kept pure so it can be tested on its own —
@@ -64,8 +65,9 @@ export function toComplaintPin(complaint: PublicComplaintRow): MapPin {
     title: complaint.category,
     latitude: pin.latitude,
     longitude: pin.longitude,
-    beforeImage: story?.beforeImage ?? null,
-    afterImage: story?.afterImage ?? null,
+    // Jittering the pin is pointless if the photo beside it still carries its GPS EXIF.
+    beforeImage: publicImageUrl(story?.beforeImage),
+    afterImage: publicImageUrl(story?.afterImage),
     storySlug: story?.slug ?? null,
   };
 }
