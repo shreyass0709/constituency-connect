@@ -129,4 +129,13 @@
   html {
     @apply font-sans;
   }
+  /* Ensure all interactive elements have visible keyboard focus */
+  button:focus-visible,
+  a:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible,
+  [role="button"]:focus-visible {
+    @apply outline outline-2 outline-offset-2 outline-ring;
+  }
 }

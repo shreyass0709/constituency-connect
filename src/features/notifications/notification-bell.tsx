@@ -98,7 +98,7 @@ export function NotificationBell({ initialUnread }: { initialUnread: number }) {
             <button
               type="button"
               onClick={() => markRead()}
-              className="text-xs font-normal text-primary hover:underline"
+              className="text-xs font-normal text-primary hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary rounded"
             >
               {t("markAllRead")}
             </button>
