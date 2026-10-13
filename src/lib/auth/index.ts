@@ -18,6 +18,7 @@ export const auth = betterAuth({
         // 3 per 10 minutes per phone (docs/02 §8). The IP limit on the route in front of
         // this stops one machine hammering; this stops one *number* being hammered from
         // many machines — which is the version that costs real money per SMS.
+        if (process.env.DEMO_OTP) return; // demo sign-in: nothing is sent, nothing to meter
         const limit = await rateLimit(`otp:${phoneNumber}`, 3, 600_000);
         if (!limit.ok) {
           throw new APIError("TOO_MANY_REQUESTS", {
@@ -25,7 +26,6 @@ export const auth = betterAuth({
           });
         }
 
-        if (process.env.DEMO_OTP) return; // demo sign-in: the fixed code is on the login page
         await sendOtpSms(phoneNumber, code);
       },
       // Demo sign-in (see DEMO_OTP in lib/env.ts): one fixed code instead of the texted one.

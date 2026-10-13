@@ -139,7 +139,9 @@ export async function limitOr429(
   if (result.ok) return null;
 
   return Response.json(
-    { error: { code: "RATE_LIMITED", message } },
+    // `message` is repeated at the top level because the Better Auth client reads it
+    // there; without it a throttled sign-in showed a generic "could not send the code".
+    { error: { code: "RATE_LIMITED", message }, message },
     { status: 429, headers: { "retry-after": String(result.retryAfterSeconds) } },
   );
 }

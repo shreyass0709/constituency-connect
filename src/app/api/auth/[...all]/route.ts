@@ -15,6 +15,10 @@ export const { GET } = handlers;
  * caller; if that bites, key on the submitted phone number instead.
  */
 export async function POST(request: Request) {
+  // Demo sign-in has no SMS to pay for and no secret code to guess, and one presenter
+  // signing in as each role in turn spends ten attempts in minutes.
+  if (process.env.DEMO_OTP) return handlers.POST(request);
+
   const limited = await limitOr429(
     `auth:${clientIp(request)}:${new URL(request.url).pathname}`,
     10,
