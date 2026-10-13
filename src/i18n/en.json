@@ -190,6 +190,7 @@
     "none": "—",
     "language": "Language",
     "signOut": "Sign out",
+    "signOutFailed": "Could not sign you out. Please try again.",
     "tryAgain": "Try again",
     "clear": "Clear"
   },

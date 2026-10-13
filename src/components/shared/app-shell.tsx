@@ -20,6 +20,7 @@ import { MAIN_CONTENT_ID, SkipLink } from "@/components/shared/skip-link";
 import { NotificationBell } from "@/features/notifications/notification-bell";
 import { NAV_BY_SECTION } from "@/constants/nav";
 import type { Section } from "@/lib/auth/permissions";
+import { toast } from "sonner";
 import { signOut } from "@/lib/auth/client";
 import { cn } from "@/lib/utils";
 
@@ -171,7 +172,10 @@ function UserMenu({ user }: { user: ShellUser }) {
         <DropdownMenuSeparator />
         <DropdownMenuItem
           onSelect={async () => {
-            await signOut();
+            // Better Auth returns a refusal rather than throwing; pushing to /login anyway
+            // just bounces a still-signed-in user straight back here.
+            const { error } = await signOut();
+            if (error) return void toast.error(common("signOutFailed"));
             router.push("/login");
           }}
         >

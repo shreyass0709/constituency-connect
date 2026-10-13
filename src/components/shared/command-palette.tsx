@@ -15,6 +15,7 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import type { NavItem } from "@/constants/nav";
+import { toast } from "sonner";
 import { signOut } from "@/lib/auth/client";
 
 // ⌘K shell: navigation + theme + sign out. Later phases add complaint search and
@@ -74,7 +75,8 @@ export function CommandPalette({ items }: { items: NavItem[] }) {
               value={common("signOut")}
               onSelect={() =>
                 run(async () => {
-                  await signOut();
+                  const { error } = await signOut();
+                  if (error) return void toast.error(common("signOutFailed"));
                   router.push("/login");
                 })
               }
