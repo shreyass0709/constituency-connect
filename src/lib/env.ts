@@ -49,7 +49,7 @@ const schema = z.object({
   // ── AI (optional; every AI feature has a deterministic fallback) ──
   GEMINI_API_KEY: optional(z.string().min(1)),
   /** Knob, not a constant: model names move faster than releases do. */
-  GEMINI_MODEL: z.string().min(1).default("gemini-2.5-flash"),
+  GEMINI_MODEL: z.string().min(1).default("gemini-3.5-flash"),
   // AI_ENABLED is deliberately NOT parsed here — `aiEnabled()` reads it live so the kill
   // switch can be flipped inside a test or a script without re-importing the world.
 });
