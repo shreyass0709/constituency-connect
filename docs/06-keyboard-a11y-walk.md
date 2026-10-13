@@ -273,10 +273,19 @@ screen-reader output and visual focus-ring contrast are **not** (needs NVDA / a 
 | 4 | `/track` | "Not found" was plain text | `role="alert"`, and the input carries `aria-invalid` + `aria-describedby` |
 | 5 | Signature pad | Labelled `<canvas>` with no role | `role="img"`; still pointer-only, still optional |
 
-### Not walked (needs data or a human)
-- Field task detail (`/field/[id]`): the seeded field officer has no assigned task, so proof
-  capture and complete-work were only reviewed from source. Assign one and re-walk.
-- Citizen feedback / confirm / reopen: needs a complaint in `RESOLVED`.
+### Second pass — field officer and citizen close-out (same day, temporary fixture rows, deleted after)
+- **Field task list and detail** (390 px wide): every stop named with a visible focus ring; "Start work",
+  "Add note" and "Add proof photo" work from the keyboard (the hidden file input is `display:none`
+  and the visible button opens the chooser); "Mark completed" without a photo is refused with an
+  announced message.
+- **Citizen close-out**: the reopen dialog traps and restores focus; "Yes, it is fixed" closes the
+  complaint; the rating dialog has named star buttons with `aria-pressed`, a labelled comment box,
+  and a focus trap.
+- **Still minor**: after "Start work", "Add note" and "Yes, it is fixed" the pressed button
+  unmounts or disables and focus falls to `<body>`. The toast is announced, so nothing is lost,
+  but the next Tab starts from the top of the page.
+
+### Not walked (needs a human)
+- Completing work end to end (needs a real Cloudinary upload).
 - Office content editors, reports, engagement queues, chat inboxes.
 - Hindi locale; 200% zoom; Firefox; any screen reader.
-
