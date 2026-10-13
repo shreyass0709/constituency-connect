@@ -176,12 +176,12 @@ GitHub → PR → GitHub Actions (lint, typecheck, vitest, prisma migrate diff)
 
 | Threat | Control |
 |---|---|
-| Injection | Prisma parameterized queries only; no raw SQL string interpolation |
-| XSS | React escaping; no `dangerouslySetInnerHTML` except sanitized (rehype-sanitize) rich text; CSP headers in `next.config` |
+| Injection | Prisma parameterized queries; the two report queries that must interpolate a column name or keyword are constrained by a runtime allowlist |
+| XSS | React escaping; one `dangerouslySetInnerHTML` (JSON-LD, escaped); no rich text — if it is ever added it must be sanitized (rehype-sanitize); CSP headers in `next.config` |
 | CSRF | Better Auth origin checks + `sameSite` cookies + Next server-action origin validation |
-| Broken access control | RBAC in `actionClient` on **every** mutation + `requireUser` in every protected layout; object-level checks (citizen sees own complaints; dept officer scoped to department; field officer to assignments) |
+| Broken access control | RBAC in `defineAction` (`lib/safe-action.ts`, called `actionClient` elsewhere in these docs) on **every** mutation + `requireUser` in every protected layout; object-level checks (citizen sees own complaints; dept officer scoped to department; field officer to assignments) |
 | Brute force / abuse | Upstash rate limits: OTP 3/10 min/phone, login 10/hr/IP, complaint submit 5/day/user, chat 10/min/user, public API 60/min/IP |
-| Malicious uploads | Cloudinary **signed** uploads only; server-issued signature constrains folder/format/size (img ≤ 10 MB, video ≤ 100 MB, audio ≤ 20 MB); allowlisted MIME; strip EXIF on public renders (keep GPS server-side for geo-verification) |
+| Malicious uploads | Cloudinary **signed** uploads only; the signature pins folder and resource type; attached URLs must be in our own cloud; size (img ≤ 10 MB, video ≤ 100 MB, audio ≤ 20 MB) and MIME are client-reported and advisory until an upload preset with `max_file_size` exists; EXIF stripped on public renders (GPS kept server-side for geo-verification) |
 | PII exposure | Public map: jittered coords, no names; phones masked outside staff views; private-complaint flag; citizens see officer name/designation only |
 | Tampering / repudiation | AuditLog on every mutation via actionClient (actor, action, entity, ip, meta); timeline is append-only — no update/delete path exposed |
 | Secrets | Zod-validated env, Vercel-managed, never client-bundled |

@@ -29,7 +29,8 @@ or follow-ups.
 | 11 | Session theft | ✅ Holds on framework defaults |
 
 **Fixed in this pass:** #7 (EXIF GPS leak), #5 (unmetered `/api/v1/uploads/sign`).
-**Open follow-ups:** #6 upload size/MIME, #6 attachment URL host allowlist.
+**Open follow-ups:** #6 upload size/MIME (needs a Cloudinary upload preset).
+**Closed 2026-10-13:** #6 attachment URL host allowlist (`attachMedia` rejects any URL outside our cloud); §8 rows 1, 2, 4 and 6 reworded to match the code.
 
 ---
 

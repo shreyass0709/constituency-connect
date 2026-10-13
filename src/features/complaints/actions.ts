@@ -3,6 +3,7 @@
 import { after } from "next/server";
 import { randomUUID } from "node:crypto";
 import { MEDIA_RULES } from "@/lib/cloudinary";
+import { env } from "@/lib/env";
 import { db } from "@/lib/db";
 import { notifyComplaint, notifyUsers } from "@/lib/notify";
 import { ActionError, defineAction } from "@/lib/safe-action";
@@ -182,6 +183,12 @@ export const attachMedia = defineAction({
       throw new ActionError(
         `That file is too large — the limit is ${Math.round(rule.maxBytes / 1024 / 1024)} MB.`,
       );
+    }
+
+    // The browser reports where Cloudinary put the file, so it can report anything. Only
+    // a delivery URL in our own cloud is believable (docs/07 row 6).
+    if (!file.url.startsWith(`https://res.cloudinary.com/${env.CLOUDINARY_CLOUD_NAME}/`)) {
+      throw new ActionError("That file did not come from our media store.");
     }
 
     // Geo-verification: how far from the reported spot was this actually taken? We warn,
