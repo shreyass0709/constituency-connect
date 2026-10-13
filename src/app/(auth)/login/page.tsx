@@ -14,7 +14,9 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{t("signIn")}</CardTitle>
+        <CardTitle>
+          <h1>{t("signIn")}</h1>
+        </CardTitle>
         <CardDescription>{t("signInHint")}</CardDescription>
       </CardHeader>
       <CardContent>

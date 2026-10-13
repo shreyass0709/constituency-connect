@@ -83,6 +83,7 @@ export function PhoneOtpForm({ next }: { next?: string }) {
       <Label htmlFor="otp">{t("enterCode", { phone: sentTo })}</Label>
       <InputOTP
         id="otp"
+        autoFocus
         maxLength={6}
         value={code}
         disabled={busy}

@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { useTheme } from "next-themes";
 import { LogOut, MoonStar, Sun } from "lucide-react";
 import {
+  Command,
   CommandDialog,
   CommandEmpty,
   CommandGroup,
@@ -44,43 +45,46 @@ export function CommandPalette({ items }: { items: NavItem[] }) {
 
   return (
     <CommandDialog open={open} onOpenChange={setOpen}>
-      <CommandInput placeholder={t("commandPlaceholder")} />
-      <CommandList>
-        <CommandEmpty>{t("noResults")}</CommandEmpty>
-        <CommandGroup heading={t("goTo")}>
-          {items.map((item) => (
+      {/* cmdk's Input and List read a store from <Command>; CommandDialog does not provide one. */}
+      <Command>
+        <CommandInput placeholder={t("commandPlaceholder")} />
+        <CommandList>
+          <CommandEmpty>{t("noResults")}</CommandEmpty>
+          <CommandGroup heading={t("goTo")}>
+            {items.map((item) => (
+              <CommandItem
+                key={item.href}
+                value={nav(item.labelKey)}
+                onSelect={() => run(() => router.push(item.href))}
+              >
+                <item.icon />
+                {nav(item.labelKey)}
+              </CommandItem>
+            ))}
+          </CommandGroup>
+          <CommandGroup heading={t("actions")}>
             <CommandItem
-              key={item.href}
-              value={nav(item.labelKey)}
-              onSelect={() => run(() => router.push(item.href))}
+              value={t("toggleTheme")}
+              onSelect={() => run(() => setTheme(resolvedTheme === "dark" ? "light" : "dark"))}
             >
-              <item.icon />
-              {nav(item.labelKey)}
+              {resolvedTheme === "dark" ? <Sun /> : <MoonStar />}
+              {t("toggleTheme")}
             </CommandItem>
-          ))}
-        </CommandGroup>
-        <CommandGroup heading={t("actions")}>
-          <CommandItem
-            value={t("toggleTheme")}
-            onSelect={() => run(() => setTheme(resolvedTheme === "dark" ? "light" : "dark"))}
-          >
-            {resolvedTheme === "dark" ? <Sun /> : <MoonStar />}
-            {t("toggleTheme")}
-          </CommandItem>
-          <CommandItem
-            value={common("signOut")}
-            onSelect={() =>
-              run(async () => {
-                await signOut();
-                router.push("/login");
-              })
-            }
-          >
-            <LogOut />
-            {common("signOut")}
-          </CommandItem>
-        </CommandGroup>
-      </CommandList>
+            <CommandItem
+              value={common("signOut")}
+              onSelect={() =>
+                run(async () => {
+                  await signOut();
+                  router.push("/login");
+                })
+              }
+            >
+              <LogOut />
+              {common("signOut")}
+            </CommandItem>
+          </CommandGroup>
+        </CommandList>
+      </Command>
     </CommandDialog>
   );
 }

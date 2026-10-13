@@ -36,6 +36,7 @@ export default async function TrackPage({ searchParams }: PageProps<"/track">) {
   }
 
   const complaint = query && !throttled ? await getPublicComplaintByCode(query) : null;
+  const notFound = Boolean(query) && !throttled && !complaint;
 
   return (
     <section className="mx-auto flex w-full max-w-2xl flex-col gap-8 px-4 py-16">
@@ -50,6 +51,8 @@ export default async function TrackPage({ searchParams }: PageProps<"/track">) {
           defaultValue={query}
           placeholder="CC-2026-01042"
           aria-label={t("codeLabel")}
+          aria-invalid={notFound || undefined}
+          aria-describedby={notFound ? "track-not-found" : undefined}
           className="font-mono"
         />
         <Button type="submit">
@@ -59,13 +62,17 @@ export default async function TrackPage({ searchParams }: PageProps<"/track">) {
       </form>
 
       {throttled ? (
-        <p className="rounded-2xl border border-dashed p-6 text-center text-muted-foreground">
+        <p role="alert" className="rounded-2xl border border-dashed p-6 text-center text-muted-foreground">
           {t("throttled")}
         </p>
       ) : null}
 
-      {query && !throttled && !complaint ? (
-        <p className="rounded-2xl border border-dashed p-6 text-center text-muted-foreground">
+      {notFound ? (
+        <p
+          id="track-not-found"
+          role="alert"
+          className="rounded-2xl border border-dashed p-6 text-center text-muted-foreground"
+        >
           {t.rich("notFound", {
             signin: (chunks) => (
               <Link href="/login" className="text-primary hover:underline">

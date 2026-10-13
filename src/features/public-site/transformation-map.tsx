@@ -80,7 +80,15 @@ export function TransformationMap({ center }: { center: [number, number] }) {
       }
 
       for (const pin of data.pins) {
-        L.circleMarker([pin.latitude, pin.longitude], {
+        const title =
+          pin.kind === "complaint" && categoryLabel.has(pin.title)
+            ? categoryLabel(pin.title)
+            : pin.title;
+        const status =
+          pin.kind === "project"
+            ? t("project", { status: pin.status.toLowerCase() })
+            : statusLabel(pin.status);
+        const marker = L.circleMarker([pin.latitude, pin.longitude], {
           radius: pin.kind === "project" ? 8 : 6,
           color: PIN_COLOUR[pin.status] ?? "#64748b",
           fillColor: PIN_COLOUR[pin.status] ?? "#64748b",
@@ -89,6 +97,20 @@ export function TransformationMap({ center }: { center: [number, number] }) {
         })
           .on("click", () => setSelected(pin))
           .addTo(map!);
+
+        // An SVG path is a mouse target and nothing else until it is told otherwise.
+        const element = marker.getElement();
+        if (element) {
+          element.setAttribute("tabindex", "0");
+          element.setAttribute("role", "button");
+          element.setAttribute("aria-label", `${title} — ${status}`);
+          element.addEventListener("keydown", (event) => {
+            const key = (event as KeyboardEvent).key;
+            if (key !== "Enter" && key !== " ") return;
+            event.preventDefault();
+            setSelected(pin);
+          });
+        }
       }
     });
 
@@ -96,7 +118,7 @@ export function TransformationMap({ center }: { center: [number, number] }) {
       cancelled = true;
       map?.remove();
     };
-  }, [data, center]);
+  }, [data, center, t, categoryLabel, statusLabel]);
 
   if (error) {
     return (
@@ -131,34 +153,37 @@ export function TransformationMap({ center }: { center: [number, number] }) {
 
       <Legend />
 
-      {selected ? (
-        <aside className="flex flex-col gap-2 rounded-2xl border p-4">
-          <p className="font-medium">
-            {selected.kind === "project"
-              ? selected.title
-              : categoryLabel.has(selected.title)
-                ? categoryLabel(selected.title)
-                : selected.title}
-          </p>
-          <p className="text-sm text-muted-foreground">
-            {selected.kind === "project"
-              ? t("project", { status: selected.status.toLowerCase() })
-              : statusLabel(selected.status)}
-          </p>
-          {selected.storySlug ? (
-            <Link href={`/stories/${selected.storySlug}`} className="text-sm text-primary hover:underline">
-              {t("readWhatChanged")}
-            </Link>
-          ) : null}
-          {selected.kind === "complaint" ? (
-            <p className="text-xs text-muted-foreground">
-              {t("jitterNote")}
+      {/* The region stays mounted so the change is announced, not just the first insert. */}
+      <div aria-live="polite">
+        {selected ? (
+          <aside className="flex flex-col gap-2 rounded-2xl border p-4">
+            <p className="font-medium">
+              {selected.kind === "project"
+                ? selected.title
+                : categoryLabel.has(selected.title)
+                  ? categoryLabel(selected.title)
+                  : selected.title}
             </p>
-          ) : null}
-        </aside>
-      ) : (
-        <p className="text-sm text-muted-foreground">{t("tapPin")}</p>
-      )}
+            <p className="text-sm text-muted-foreground">
+              {selected.kind === "project"
+                ? t("project", { status: selected.status.toLowerCase() })
+                : statusLabel(selected.status)}
+            </p>
+            {selected.storySlug ? (
+              <Link href={`/stories/${selected.storySlug}`} className="text-sm text-primary hover:underline">
+                {t("readWhatChanged")}
+              </Link>
+            ) : null}
+            {selected.kind === "complaint" ? (
+              <p className="text-xs text-muted-foreground">
+                {t("jitterNote")}
+              </p>
+            ) : null}
+          </aside>
+        ) : (
+          <p className="text-sm text-muted-foreground">{t("tapPin")}</p>
+        )}
+      </div>
     </div>
   );
 }

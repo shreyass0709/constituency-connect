@@ -85,6 +85,7 @@ export function SignaturePad({
         ref={canvasRef}
         width={600}
         height={200}
+        role="img"
         aria-label={t("area")}
         className="h-40 w-full touch-none rounded-xl border bg-white"
         onPointerDown={(event) => {

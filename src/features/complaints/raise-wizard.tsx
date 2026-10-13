@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowRight, Check, ChevronLeft, LoaderCircle, Locate, Send } from "lucide-react";
 import { useTranslations } from "next-intl";
@@ -35,6 +35,13 @@ export function RaiseWizard({ draft, homeWard }: { draft: Draft | null; homeWard
   const categoryLabel = useTranslations("category");
   const router = useRouter();
   const [step, setStep] = useState(0);
+  // The buttons that change step unmount with it; without this, focus falls back to <body>.
+  const progress = useRef<HTMLOListElement>(null);
+  const firstStep = useRef(true);
+  useEffect(() => {
+    if (firstStep.current) firstStep.current = false;
+    else progress.current?.focus();
+  }, [step]);
   const [id, setId] = useState<string | null>(draft?.id ?? null);
   const [busy, setBusy] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -121,7 +128,12 @@ export function RaiseWizard({ draft, homeWard }: { draft: Draft | null; homeWard
 
   return (
     <div className="flex flex-col gap-6">
-      <ol className="flex items-center gap-2 text-sm" aria-label={t("progress")}>
+      <ol
+        ref={progress}
+        tabIndex={-1}
+        className="flex items-center gap-2 text-sm outline-none"
+        aria-label={t("progress")}
+      >
         {STEPS.map((label, index) => (
           <li key={label} className="flex items-center gap-2">
             <span

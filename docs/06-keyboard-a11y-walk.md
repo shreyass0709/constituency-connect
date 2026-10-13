@@ -233,3 +233,50 @@ Before shipping:
 - [ ] Form errors announced
 - [ ] Modals trap focus
 - [ ] Tested on at least 2 browsers + 1 screen reader (or planned for post-launch)
+
+## Walk results — 2026-10-13 (Chrome, Playwright, keyboard events only, production build)
+
+Scripted walk against `npm run build && npm start` with the seeded users. Tab order, focus
+visibility, labels, dialog focus management and menu/escape behaviour are machine-checked;
+screen-reader output and visual focus-ring contrast are **not** (needs NVDA / a human eye).
+
+### Passed
+- **Public pages** (`/`, `/about`, `/action`, `/stories`, `/announcements`, `/schemes`, `/gallery`,
+  `/contact`, `/faq`, `/track`): skip link is the first stop, sensible order, every stop named,
+  every stop has a visible focus indicator, one `h1` each.
+- **Login by keyboard alone**: phone → Enter → OTP → session.
+- **Raise wizard** steps 1–3: category buttons toggle with Space and Enter and set `aria-pressed`;
+  title, description, address and landmark are labelled; validation errors arrive in a live
+  region; the step indicator carries `aria-current="step"`.
+- **Shell**: theme toggle, notification bell and account menu open from the keyboard, hold focus,
+  and Escape returns focus to the opener.
+- **Staff dialogs** (Categorise, Reject, Merge duplicate, Escalate): focus moves in, Tab is
+  trapped, fields are labelled, Escape closes and focus returns to the opener. Radix Select
+  opens with Space, arrows move, Escape closes the list without closing the dialog.
+- **Triage**: row checkboxes labelled with the complaint code, Space toggles, bulk bar appears.
+- **Signature**: optional (`signatureMediaId` is nullish), so a keyboard user can complete work
+  without drawing.
+
+### Found and fixed
+- **BLOCKER — Ctrl/Cmd+K crashed every authenticated page** into the error boundary
+  (`Cannot read properties of undefined (reading 'subscribe')`). `CommandDialog` in this shadcn
+  version no longer wraps children in cmdk's `<Command>`, so `CommandInput`/`CommandList` had no
+  store. Fixed in `src/components/shared/command-palette.tsx` by wrapping in `<Command>`.
+  Verified: palette opens with focus in the search box, arrows select, typing filters, Escape closes.
+
+### Open — all five fixed and re-walked the same day
+| # | Where | Was | Now |
+|---|---|---|---|
+| 1 | `/map` | Pins unreachable/unnamed from the keyboard | Each pin is a `role="button"` with a name ("Road — Work in progress"), Enter/Space select it, and the detail panel is a live region |
+| 2 | Wizard, login | Focus fell to `<body>` on step/form swap | Wizard moves focus to the progress list; the OTP box takes focus when it appears |
+| 3 | `/login` | No `h1` | "Sign in" is the `h1` (no skip link: the form is the second tab stop) |
+| 4 | `/track` | "Not found" was plain text | `role="alert"`, and the input carries `aria-invalid` + `aria-describedby` |
+| 5 | Signature pad | Labelled `<canvas>` with no role | `role="img"`; still pointer-only, still optional |
+
+### Not walked (needs data or a human)
+- Field task detail (`/field/[id]`): the seeded field officer has no assigned task, so proof
+  capture and complete-work were only reviewed from source. Assign one and re-walk.
+- Citizen feedback / confirm / reopen: needs a complaint in `RESOLVED`.
+- Office content editors, reports, engagement queues, chat inboxes.
+- Hindi locale; 200% zoom; Firefox; any screen reader.
+
