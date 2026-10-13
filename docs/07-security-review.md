@@ -29,7 +29,8 @@ or follow-ups.
 | 11 | Session theft | ✅ Holds on framework defaults |
 
 **Fixed in this pass:** #7 (EXIF GPS leak), #5 (unmetered `/api/v1/uploads/sign`).
-**Open follow-ups:** #6 upload size/MIME (needs a Cloudinary upload preset).
+**Open follow-ups:** none.
+**Closed 2026-10-13:** #6 upload size/MIME. The preset route was a dead end — Cloudinary presets silently drop `max_file_size`. Instead `allowed_formats` is now part of the signed parameters (Cloudinary refuses other formats; verified with a GIF), and `attachMedia` reads the real size from the Admin API and deletes oversized assets. If Cloudinary cannot be reached the check falls back to the client-reported size rather than block a complaint.
 **Closed 2026-10-13:** #6 attachment URL host allowlist (`attachMedia` rejects any URL outside our cloud); §8 rows 1, 2, 4 and 6 reworded to match the code.
 
 ---

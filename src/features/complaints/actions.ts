@@ -2,7 +2,7 @@
 
 import { after } from "next/server";
 import { randomUUID } from "node:crypto";
-import { MEDIA_RULES } from "@/lib/cloudinary";
+import { MEDIA_RULES, destroyAsset, inspectAsset } from "@/lib/cloudinary";
 import { env } from "@/lib/env";
 import { db } from "@/lib/db";
 import { notifyComplaint, notifyUsers } from "@/lib/notify";
@@ -179,10 +179,26 @@ export const attachMedia = defineAction({
     }
 
     const rule = MEDIA_RULES[file.kind];
-    if (file.sizeBytes && file.sizeBytes > rule.maxBytes) {
-      throw new ActionError(
-        `That file is too large — the limit is ${Math.round(rule.maxBytes / 1024 / 1024)} MB.`,
-      );
+    const tooLarge = new ActionError(
+      `That file is too large — the limit is ${Math.round(rule.maxBytes / 1024 / 1024)} MB.`,
+    );
+    if (!file.publicId.startsWith(`${rule.folder}/`)) {
+      throw new ActionError("That file did not come from our media store.");
+    }
+
+    // The browser's size and URL are claims; Cloudinary's record of the asset is the fact.
+    // If Cloudinary cannot be asked we fall back to the claim rather than block a complaint.
+    const asset = await inspectAsset(file.kind, file.publicId);
+    if (asset === "missing") throw new ActionError("That upload could not be found. Try again.");
+    if (asset === "unknown") {
+      if (file.sizeBytes && file.sizeBytes > rule.maxBytes) throw tooLarge;
+    } else {
+      if (asset.bytes > rule.maxBytes) {
+        await destroyAsset(file.kind, file.publicId);
+        throw tooLarge;
+      }
+      file.url = asset.url;
+      file.sizeBytes = asset.bytes;
     }
 
     // The browser reports where Cloudinary put the file, so it can report anything. Only
