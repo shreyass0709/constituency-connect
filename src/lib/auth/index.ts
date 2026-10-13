@@ -25,8 +25,13 @@ export const auth = betterAuth({
           });
         }
 
+        if (process.env.DEMO_OTP) return; // demo sign-in: the fixed code is on the login page
         await sendOtpSms(phoneNumber, code);
       },
+      // Demo sign-in (see DEMO_OTP in lib/env.ts): one fixed code instead of the texted one.
+      verifyOTP: process.env.DEMO_OTP
+        ? ({ code }) => code === process.env.DEMO_OTP
+        : undefined,
       requireVerification: true,
       // Reuse the existing User.phone column instead of a second phoneNumber column.
       schema: {

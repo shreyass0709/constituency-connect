@@ -286,6 +286,17 @@
   "auth": {
     "signIn": "Sign in",
     "signInHint": "We'll text a 6-digit code to your phone. No password needed.",
+    "demoHint": "Demo mode: enter any mobile number, then use the code {code}.",
+    "demoAccounts": "Demo accounts — tap one to fill in its number:",
+    "roles": {
+      "CITIZEN": "Citizen",
+      "OFFICE_STAFF": "Office staff",
+      "DEPARTMENT_OFFICER": "Department officer",
+      "FIELD_OFFICER": "Field officer",
+      "REPRESENTATIVE": "Representative",
+      "ADMIN": "Admin",
+      "SUPER_ADMIN": "Super admin"
+    },
     "deactivated": "This account has been deactivated. Contact the representative's office.",
     "mobileNumber": "Mobile number",
     "sending": "Sending…",

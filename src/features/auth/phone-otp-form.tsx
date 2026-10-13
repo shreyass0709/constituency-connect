@@ -21,7 +21,14 @@ export function toE164(input: string): string | null {
   return null;
 }
 
-export function PhoneOtpForm({ next }: { next?: string }) {
+export function PhoneOtpForm({
+  next,
+  demoAccounts = [],
+}: {
+  next?: string;
+  /** Only passed in demo sign-in mode (DEMO_OTP): tapping one fills in its number. */
+  demoAccounts?: { label: string; phone: string }[];
+}) {
   const t = useTranslations("auth");
   const router = useRouter();
   const [phone, setPhone] = useState("");
@@ -74,6 +81,24 @@ export function PhoneOtpForm({ next }: { next?: string }) {
         <Button type="submit" disabled={busy}>
           {busy ? t("sending") : t("sendCode")}
         </Button>
+        {demoAccounts.length ? (
+          <div className="grid gap-2 border-t pt-4">
+            <p className="text-xs text-muted-foreground">{t("demoAccounts")}</p>
+            <div className="flex flex-wrap gap-2">
+              {demoAccounts.map((account) => (
+                <Button
+                  key={account.phone}
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPhone(account.phone)}
+                >
+                  {account.label} · {account.phone.replace(/^\+91/, "")}
+                </Button>
+              ))}
+            </div>
+          </div>
+        ) : null}
       </form>
     );
   }

@@ -22,6 +22,12 @@ const schema = z.object({
   /** Required only when SMS_PROVIDER=msg91; `sendOtpSms` throws if one is missing. */
   MSG91_AUTH_KEY: optional(z.string().min(1)),
   MSG91_TEMPLATE_ID: optional(z.string().min(1)),
+  /**
+   * Demo sign-in: when set, this one code works for every phone number, no SMS is sent,
+   * and the login page shows it. Anyone can then sign in as anyone — staff included —
+   * so it must be unset before real citizen data is behind the login.
+   */
+  DEMO_OTP: optional(z.string().regex(/^\d{6}$/)),
   // Optional: uploads are disabled when unset (file attachments stay off).
   CLOUDINARY_CLOUD_NAME: optional(z.string().min(1)),
   CLOUDINARY_API_KEY: optional(z.string().min(1)),
