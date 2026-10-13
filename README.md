@@ -1,8 +1,54 @@
 # Constituency Connect
 
-Citizens raise civic issues, the representative's office triages them, departments and
-field officers resolve them, and a public dashboard shows what actually got fixed.
+**Live demo: <https://constituency-connect-five.vercel.app/>**
+
+A platform that connects citizens with their elected representative. Citizens raise
+civic issues, the representative's office triages them, departments and field officers
+resolve them, and a public dashboard shows what actually got fixed.
 **Citizen Voice + Representative Action + Visible Outcome.**
+
+## Try the demo
+
+The live site runs in demo mode with sample data, so you can sign in as any role
+without an SMS:
+
+1. Open the [login page](https://constituency-connect-five.vercel.app/login).
+2. Tap one of the demo accounts listed under the form — it fills in the number.
+3. Click **Send code** and enter `123456`.
+
+| Role | What you can see |
+|---|---|
+| Citizen | Raise a concern, track it, confirm the fix, rate the outcome |
+| Office staff | Triage queue, assign, categorise, merge duplicates, reports |
+| Department officer | Department queue and SLA tracking |
+| Field officer | Assigned tasks, proof photos with location check, sign-off |
+| Representative / Admin | Analytics, AI monthly summary, public content |
+
+Demo mode is a setting (`DEMO_OTP`), not the default: without it, sign-in uses a real
+one-time code sent by SMS.
+
+## What it does
+
+- **Raise a concern in three steps** — category, description, photos or a voice note,
+  and location. Every concern gets a code (`CC-2026-00001`) that can be tracked without
+  signing in.
+- **A visible timeline** — every change to a complaint is recorded and shown to the
+  citizen, from submission to closure.
+- **Office triage** — acknowledge, categorise, assign, reject, merge duplicates,
+  escalate, with SLA due dates and overdue tracking.
+- **Field work with proof** — officers attach before/after photos; the app checks how
+  far the photo was taken from the reported spot.
+- **AI assistance (Gemini)** — auto-tags category, priority, department and language,
+  flags likely duplicates, transcribes voice notes, translates on demand, and drafts
+  replies. Every AI step has a manual fallback.
+- **Public transparency site** — action dashboard, a map of concerns and projects,
+  before/after impact stories, announcements, schemes and an FAQ chatbot.
+- **Citizen engagement** — appointments, callback requests, polls, suggestions and
+  live chat with the office.
+- **Notifications** — in-app, email and web push.
+- **English and Hindi**, keyboard accessible, and installable on a phone.
+
+## For developers
 
 One deployment serves one representative. The design docs are the source of truth:
 [requirements](docs/01-requirements.md) · [architecture](docs/02-architecture.md) ·
@@ -32,7 +78,9 @@ npm run dev                   # http://localhost:3000
 ```
 
 OTP codes are printed to the dev server console (`[OTP] +91… → 123456`) — no SMS
-provider needed to sign in locally.
+provider needed to sign in locally. To skip that, set `DEMO_OTP="123456"` in `.env`: that
+one code then works for every number and the login page lists an account per role. Anyone
+can sign in as anyone while it is set, so use it with sample data only.
 
 ## Commands
 
