@@ -139,8 +139,12 @@ function ThemeToggle() {
       className="w-full justify-start gap-3 text-muted-foreground"
       onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
     >
-      {resolvedTheme === "dark" ? <Sun className="size-4" /> : <MoonStar className="size-4" />}
-      {resolvedTheme === "dark" ? t("lightMode") : t("darkMode")}
+      {/* The server cannot know the theme, so both states render and CSS picks one —
+          choosing in JS made the first client render disagree with the server's HTML. */}
+      <Sun className="hidden size-4 dark:block" />
+      <MoonStar className="size-4 dark:hidden" />
+      <span className="hidden dark:inline">{t("lightMode")}</span>
+      <span className="dark:hidden">{t("darkMode")}</span>
     </Button>
   );
 }
